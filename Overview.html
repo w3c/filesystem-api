@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>FileSystem API</title>
+    <meta charset='utf-8'>
+    <script src='http://www.w3.org/Tools/respec/respec-w3c-common.js' class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+          // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
+          specStatus:           "ED",
+          
+          // the specification's short name, as in http://www.w3.org/TR/short-name/
+          shortName:            "filesystem-api",
+
+          // if your specification has a subtitle that goes below the main
+          // formal title, define it here
+          // subtitle   :  "an excellent document",
+
+          // if you wish the publication date to be other than today, set this
+          // publishDate:  "2009-08-06",
+
+          // if the specification's copyright date is a range of years, specify
+          // the start date here:
+          // copyrightStart: "2005"
+
+          // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
+          // and its maturity status
+          // previousPublishDate:  "1977-03-15",
+          // previousMaturity:  "WD",
+
+          // if there a publicly available Editor's Draft, this is the link
+          edDraftURI:           "https://github.com/arunranga/filesystem-api",
+
+          // if this is a LCWD, uncomment and set the end of its review period
+          // lcEnd: "2009-08-05",
+
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              { name: "Arun Ranganathan", url: "http://arunranga.com",
+                company: "Mozilla", companyURL: "http://www.mozilla.org/" },
+          ],
+
+          // authors, add as many as you like. 
+          // This is optional, uncomment if you have authors as well as editors.
+          // only "name" is required. Same format as editors.
+
+          //authors:  [
+          //    { name: "Your Name", url: "http://example.org/",
+          //      company: "Your Company", companyURL: "http://example.com/" },
+          //],
+          
+          // name of the WG
+          wg:           "Web Applications Working Group",
+          
+          // URI of the public WG page
+          wgURI:        "http://www.w3.org/2008/webapps/",
+          
+          // name (without the @w3c.org) of the public mailing to which comments are due
+          wgPublicList: "public-webapps",
+          
+          // URI of the patent status for this WG, for Rec-track documents
+          // !!!! IMPORTANT !!!!
+          // This is important for Rec-track documents, do not copy a patent URI from a random
+          // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
+          // Team Contact.
+         wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/42538/status",
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      The FileSystem API works on a local sandboxed file system exposed only to Web Applications, with all the well-known metaphors of a file system, including files and directories, and the ability to navigate through these with standard file system operations, such as creation of files and directories, reading, writing, and copying.  It builds on top of the [[FileAPI]].
+    </section>
+    
+    <section id='introduction' class='informative'>
+      <h2>Introduction</h2>
+      <p>The FileSystem API is for Web applications that have client-side storage needs not readily addressed by database APIs such as [[IndexedDB]].   Such applications need to handle common file types that end users typically link with logical directory structures in a file system, and generally involve large binary Blobs [[FileAPI]] that may be shared with other applications.  The API is designed to be asynchronous using Promises [[DOM4]].</p>
+      <p>The FileSystem API is a virtual file system, and thus user agents are responsible for allocating space for the creation of a sandboxed file system and for imposing storage quotas on that virtual file system.  </p>
+    
+    <section>
+      <h3>Use Cases</h3>
+      <ol>
+          <li>Persistent uploader
+            <ul>
+            <li>When a file or directory is selected for upload, it copies it
+            into a local sandbox and uploads a chunk at a time.</li>
+            <li>It can restart uploads after browser crashes, network
+            interruptions, etc.</li>
+            </ul>
+          </li>
+          <li>Video game or other app with lots of media assets
+            <ul>
+            <li>It downloads one or several large tarballs, and expands them
+            locally into a directory structure.</li>
+            <li>The same download should work on any operating system.</li>
+            <li>It can manage prefetching just the next-to-be-needed assets in
+            the background, so going to the next game level or activating a new
+            feature doesn't require waiting for a download.</li>
+            <li>It uses those assets directly from its local cache, by direct
+            file reads or by handing local URLs to image or video tags, WebGL
+            asset loaders, etc.</li>
+            <li>The files may be of arbitrary binary format.</li>
+            </ul>
+          </li>
+
+          <li>Audio/Photo editor with offline access or local cache for speed
+            <ul>
+            <li>Data here is potentially quite large, and is
+            read-write.</li>
+            <li>It may want to do partial writes to files (ovewriting just the
+            ID3/EXIF tags, for example).</li>
+            <li>The ability to organize project files by creating directories
+            would be useful.</li>
+            <li>Edited files should be accessable by other client-side applications.
+            </li></ul>
+          </li>
+
+          <li>Offline video viewer
+            <ul>
+            <li>It downloads large files (&gt;1GB) for later viewing.</li>
+            <li>It needs efficient seek + streaming.</li>
+            <li>It must be able to hand a URL to the video tag.</li>
+            <li>It should enable access to partly-downloaded files e.g.  to let
+            you watch the first episode of the DVD even if your download didn't
+            complete before you got on the plane.</li>
+            <li>It should be able to pull a single episode out of the middle of
+            a download and give just that to the video tag.</li>
+            </ul>
+          </li>
+
+          <li>Offline Web Mail Client
+            <ul>
+            <li>Downloads attachments and stores them locally.</li>
+            <li>Caches user-selected attachments for later upload.</li>
+            <li>Needs to be able to refer to cached attachments and image
+            thumbnails for display and upload.</li>
+            <li>Should be able to trigger the UA's download manager just as if
+            talking to a server.</li>
+            <li>Should be able to upload an email with attachments as a
+            multipart post, rather than sending a file at a time in an XHR.</li>
+            </ul>
+          </li>
+        </ol>
+    </section>
+    <section>
+      <h3>Model</h3>
+      <p>TBD</p>
+    </section>
+  </section>
+  <section>
+    <h2>Methods on The Global Object</h2>
+    <dl title='partial interface Navigator' class='idl'>
+      <dt>Promise&lt;Directory> getFileSystem(optional FileSystemParameters parameters)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+</dl>
+  <dl title='partial interface URL' class='idl'>
+  <dt>static DOMString? getPersistentURL(File file)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  </dl>
+  </section>
+  <section>
+    <h2>The Directory Interface</h2>
+<dl title='interface Directory' class='idl'>
+  <dt>readonly attribute DOMString name</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>Promise&lt;File> createFile(DOMString path, createFileOptions options)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>Promise&lt;Directory> createDirectory(DOMString path)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>Promise&lt;(File or Directory)> get(DOMString path)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>AbortableProgressPromise&lt;void>
+    move((DOMString or File or Directory) path,
+         (DOMString or Directory or DestinationDict) dest)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>AbortableProgressPromise&lt;void>
+    copy((DOMString or File or Directory) path, 
+         (DOMString or Directory or DestinationDict) dest)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>Promise&lt;boolean> remove((DOMString or File or Directory) path)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>Promise&lt;boolean> removeDeep((DOMString or File or Directory) path)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>Promise&lt;FileHandle> openRead((DOMString or File) path)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>Promise&lt;FileHandleWritable> openWrite((DOMString or File) path,
+        OpenWriteOptions options)</dt>
+        <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>EventStream&lt;(File or Directory)> enumerate(optional DOMString path)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>EventStream&lt;File> enumerateDeep(optional DOMString path)</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  
+</dl>
+  </section>
+  <section>
+    <h2>The FileHandle interface</h2>
+  <dl title='interface FileHandle' class='idl'>
+   <dt>readonly attribute FileOpenMode mode</dt>
+   <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>readonly attribute boolean active</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>attribute long long? offset</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>Promise&lt;File> getFile()</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>AbortableProgressPromise&lt;ArrayBuffer> read(unsigned long long size) </dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>void abort()</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+    </dl>
+  </section>
+<section>
+<h2>The FileHandleWritable Interface</h2>
+ <dl title='interface FileHandleWritable : FileHandle' class='idl'>
+<dt>AbortableProgressPromise&lt;void> write((DOMString or ArrayBuffer or
+ArrayBufferView or Blob) value)</dt>
+<dd>
+    <p>TBD</p>
+  </dd>
+ <dt>Promise&lt;void> setSize(optional unsigned long long size)</dt>
+ <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>Promise&lt;void> flush()</dt>
+<dd>
+    <p>TBD</p>
+  </dd>
+</dl>  
+</section>
+<section>
+<h2>FileSystem Configuration Parameters</h2>
+<dl title="enum StorageType" class="idl">
+  <dt>temporary</dt>
+   <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>persistent</dt>
+   <dd>
+    <p>TBD</p>
+  </dd>
+</dl>
+<dl title="dictionary FileSystemParameters" class="idl">
+  <dt>StorageType storage = "temporary"</dt>
+   <dd>
+    <p>TBD</p>
+  </dd>
+</dl>
+<dl title="dictionary CreateFileOptions" class="idl">
+  <dt>CreateIfExistsMode ifExists = "fail"</dt>
+   <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>(DOMString or Blob or ArrayBuffer or ArrayBufferView) data</dt>
+</dl>
+<dl title="dictionary OpenWriteOptions" class="idl">
+ <dt>OpenIfNotExistsMode ifNotExists = "create"</dt>
+ <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>OpenIfExistsMode ifExists = "open"</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+</dl>
+<dl title="enum CreateIfExistsMode" class="idl">
+<dt>replace</dt>
+<dd>
+    <p>TBD</p>
+  </dd>
+<dt>fail</dt>
+<dd>
+    <p>TBD</p>
+  </dd>  
+</dl>
+<dl title="enum OpenIfExistsMode" class="idl">
+  <dt>open</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>fail</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+</dl>
+<dl title="enum OpenIfNotExistsMode" class="idl">
+  <dt>create</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>fail</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+</dl>
+
+<dl title="dictionary DestinationDict" class="idl">
+  <dt>Directory dir</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>DOMString name</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+</dl>
+
+<dl title="enum FileOpenMode" class="idl">
+  <dt>readonly</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>readwrite</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+</dl>
+</section>
+<section>
+  <h2>Acknowledgements</h2>
+  Jonas Sicking, Mounir Lamouri, Ben Turner, Jan Varga
+</section>
+   
+  </body>
+</html>
