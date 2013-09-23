@@ -149,7 +149,8 @@
     </section>
   </section>
   <section>
-    <h2>Methods on The Global Object</h2>
+    <h2>Extensions to Existing Objects</h2>
+    <p>The FileSystem API is exposed to the Web via an extension to the <code>window.navigator</code> object [[!HTML]].  A URL-generating method for individual files within the virtualized filesystem is generated via an extension to the <code>window.URL</code> object [[!URL]].</p>
     <dl title='partial interface Navigator' class='idl'>
       <dt>Promise&lt;Directory> getFileSystem(optional FileSystemParameters parameters)</dt>
   <dd>
@@ -184,12 +185,6 @@
   </dd>
   <dt>AbortableProgressPromise&lt;void>
     move((DOMString or File or Directory) path,
-         (DOMString or Directory or DestinationDict) dest)</dt>
-  <dd>
-    <p>TBD</p>
-  </dd>
-  <dt>AbortableProgressPromise&lt;void>
-    copy((DOMString or File or Directory) path, 
          (DOMString or Directory or DestinationDict) dest)</dt>
   <dd>
     <p>TBD</p>
@@ -359,7 +354,7 @@ ArrayBufferView or Blob) value)</dt>
 </section>
 <section>
   <h2>Acknowledgements</h2>
-  Jonas Sicking, Mounir Lamouri, Ben Turner, Jan Varga
+  Jonas Sicking, Mounir Lamouri, Ben Turner, Jan Varga, Andrea Marchesini, Doug Turner
 </section>
    
   </body>
