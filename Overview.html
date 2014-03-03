@@ -151,22 +151,29 @@
   <section>
     <h2>Extensions to Existing Objects</h2>
     <p>The FileSystem API is exposed to the Web via an extension to the <code>window.navigator</code> object [[!HTML]].  A URL-generating method for individual files within the virtualized filesystem is generated via an extension to the <code>window.URL</code> object [[!URL]].</p>
+    <section id="extensionNav">
+      <h3>Extension to Navigator</h3>
     <dl title='partial interface Navigator' class='idl'>
       <dt>Promise&lt;Directory> getFileSystem(optional FileSystemParameters parameters)</dt>
   <dd>
-    <p>TBD</p>
+    <p>The <code>getFileSystem</code> method returns a new <code>Promise</code> object which is a , the <code>getFileSystem</code> must perform the following steps:</p>
+    <ol><li><p></p></ol>
   </dd>
 </dl>
+</section>
+<section id="extensionURL">
+  <h3>Extension to URL</h3>
   <dl title='partial interface URL' class='idl'>
   <dt>static DOMString? getPersistentURL(File file)</dt>
   <dd>
     <p>TBD</p>
   </dd>
   </dl>
+</section>
   </section>
   <section>
     <h2>The Directory Interface</h2>
-<dl title='interface Directory' class='idl'>
+<dl title='[Exposed=Window,Worker] interface Directory' class='idl'>
   <dt>readonly attribute DOMString name</dt>
   <dd>
     <p>TBD</p>
@@ -354,7 +361,7 @@ ArrayBufferView or Blob) value)</dt>
 </section>
 <section>
   <h2>Acknowledgements</h2>
-  Jonas Sicking, Mounir Lamouri, Ben Turner, Jan Varga, Andrea Marchesini, Doug Turner
+  Jonas Sicking, Mounir Lamouri, Ben Turner, Jan Varga, Andrea Marchesini, Doug Turner, Maciej Stachowiak
 </section>
    
   </body>
