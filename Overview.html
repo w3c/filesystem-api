@@ -67,19 +67,40 @@
          wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/42538/status",
       };
     </script>
+
+    <style type="text/css">
+      table {
+        border-collapse: collapse;
+        border-style: hidden hidden none;
+      }
+      table thead {
+        border-bottom: medium solid;
+      }
+      table td, table th {
+        border-bottom: thin solid;
+        border-left: medium solid;
+        border-right: medium solid;
+        padding: 0.2em;
+        vertical-align: top;
+      }
+      .example .example .example-title {
+          display: none
+      }
+    </style>
   </head>
   <body>
     <section id='abstract'>
-      The FileSystem API works on a local sandboxed file system exposed only to Web Applications, with all the well-known metaphors of a file system, including files and directories, and the ability to navigate through these with standard file system operations, such as creation of files and directories, reading, writing, and copying.  It builds on top of the [[FileAPI]].
+      <p>The FileSystem API defines functionality on a local sandboxed file system within the same origin of the Web Application that created it. It exposes standard file system operations to Web Applications, such as creation of files and directories, and reading, writing, and copying files and directories.  It builds on top of the [[!FileAPI]] and uses Promises for asynchronous functionality [[!ECMAScript]].</p>
     </section>
     
     <section id='introduction' class='informative'>
       <h2>Introduction</h2>
-      <p>The FileSystem API is for Web applications that have client-side storage needs not readily addressed by database APIs such as [[IndexedDB]].   Such applications need to handle common file types that end users typically link with logical directory structures in a file system, and generally involve large binary Blobs [[FileAPI]] that may be shared with other applications.  The API is designed to be asynchronous using Promises [[DOM4]].</p>
+      <p>The FileSystem API is for Web applications that have client-side storage needs not readily addressed by database APIs such as [[IndexedDB]].   Such applications need to handle common file types that end users typically link with logical directory structures in a file system, and generally involve binary data that may be shared with other applications.  The API is designed to be asynchronous using Promises [[!ECMAScript]].</p>
       <p>The FileSystem API is a virtual file system, and thus user agents are responsible for allocating space for the creation of a sandboxed file system and for imposing storage quotas on that virtual file system.  </p>
     
-    <section>
+    <section id="useCases">
       <h3>Use Cases</h3>
+
       <ol>
           <li>Persistent uploader
             <ul>
@@ -112,20 +133,22 @@
             ID3/EXIF tags, for example).</li>
             <li>The ability to organize project files by creating directories
             would be useful.</li>
-            <li>Edited files should be accessable by other client-side applications.
+            <li><p>Edited files should be accessable by other client-side applications.</p>
+              <div class="issue"><p>This requirement may need to be abandoned. It raises technical problems like cross-application locking, which may need to be addressed before listing this as a viable use case.</p></div>
             </li></ul>
           </li>
 
           <li>Offline video viewer
             <ul>
             <li>It downloads large files (&gt;1GB) for later viewing.</li>
-            <li>It needs efficient seek + streaming.</li>
+            <li><p>It needs efficient seek + streaming.</p>
+              <div class="issue"><p>Actual video streaming is being worked on through separate technology; however, the ability to write to a sandboxed filesystem for later retrieval is covered by this specification.</p></div></li>
             <li>It must be able to hand a URL to the video tag.</li>
             <li>It should enable access to partly-downloaded files e.g.  to let
             you watch the first episode of the DVD even if your download didn't
             complete before you got on the plane.</li>
             <li>It should be able to pull a single episode out of the middle of
-            a download and give just that to the video tag.</li>
+            a download and give just that to the video tag; this can be accomplished by a URL scheme that works with a filesystem path.</li>
             </ul>
           </li>
 
@@ -143,54 +166,252 @@
           </li>
         </ol>
     </section>
-    <section>
-      <h3>Model</h3>
-      <p>TBD</p>
-    </section>
+    
   </section>
+  <section>
+  <h2>Conformance</h2>
+
+        <p>
+          Everything in this specification is normative except for
+          examples and sections marked as being informative.
+        </p>
+        <p>
+          The keywords “MUST”, <br/>
+          “MUST NOT”,<br/>
+          “REQUIRED”,<br/>
+          “SHALL”,<br/>
+          “SHALL NOT”,<br/>
+          “RECOMMENDED”,<br/>
+          “MAY” and<br/>
+          “OPTIONAL” in this document are to be
+          interpreted as described in<br/>
+          <cite><a href="http://www.ietf.org/rfc/rfc2119">Key words for use in RFCs to
+              Indicate Requirement Levels</a></cite>
+          [[!RFC2119]].
+        </p>
+        <p>
+          The following conformance classes are defined by this specification:
+        </p>
+        <dl>
+          <dt><dfn id="dfn-conforming-implementation">conforming user agent</dfn></dt>
+          <dd>
+            <p>
+              A user agent is considered to be a
+              <a>conforming user agent</a>
+              if it satisfies all of the MUST-,
+              REQUIRED- and SHALL-level
+              criteria in this specification that apply to implementations.  This specification uses both the terms "conforming user agent" and "user agent" to refer to this product class.
+            </p>
+      <p>User agents may implement algorithms in this specifications in any way desired, so long as the end result is indistinguishable from the result that would be obtained
+      from the specification's algorithms.</p>
+          </dd>         
+        </dl>
+  <p>User agents that use ECMAScript to implement the APIs defined in this specification must implement them in a manner consistent with the
+  ECMAScript Bindings defined in the Web IDL specification [[!WEBIDL]] as this specification uses that specification and terminology. </p>   
+
+  </section>
+  <section id="terminology">
+    <h2>Terminology</h2>
+    <p>The terms <dfn id="Blob">Blob</dfn>, <dfn id="File">File</dfn>, and <dfn>File Constructor Steps</dfn> are as defined by the [[!FileAPI]] specification.</p>
+    <p>The terms <dfn id="scheme">scheme</dfn>, <dfn id="scheme-data">scheme data</dfn>, and <dfn id="URL">URL</dfn> are as defined by the [[!URL]] specification.</p>
+    <p>The term <dfn id="origin">origin</dfn> is used as defined by the Web Origin Specification [[!ORIGIN]].</p>
+    <p>The term <dfn id="worker"><code>worker</code></dfn> is defined by the WebWorkers specification [[!WEBWORKERS]].</p>
+    <p>The terms <dfn>context object</a>, <dfn id="strictly-split-a-string">strictly split a string</dfn>, and <dfn id="document"><code>document</code></dfn> are defined by the HTML specification [[!HTML]].</p>
+
+</section>
+<section>
+  <h2>Model</h2>
+  <p>A <dfn id="directoryConcept">directory</dfn> is a logical organizing storage unit with a distinct <dfn>name</dfn> which contains files and/or one or more <dfn id="subdirectoryConcept">subdirectory</dfn> units (which are themselves <a href="#directoryConcept">directory</a> units). The <a href="#directoryConcept">directory</a> is organized by a hierarchical containment structure, which can also be represented by a string, called a <dfn>path</dfn>; the <a>path</a> string uses the U+002F SOLIDUS character ("/") to denote directories within the <a>Directory Tree</a>. </p>
+    <p> The top-most containing <a href="#directoryConcept">directory</a>, which contains all <a href="#directoryConcept">directories</a> and files, if any exist, is called the <dfn>root</dfn> <a href="#directoryConcept">directory</a>, and has the following properties:</p> 
+    <ul>
+      <li>It is not contained by any other <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>; it contains all others.</li>
+      <li>It is represented by a <a>path</a> that is equal to the string "/" (a single U+002F SOLIDUS character).</li>
+      <li><p>It has the name "root" (that is, the Unicode characters U+0072, U+006F, U+006F, U=0074).</p>
+      <div class="issue"><p>"root" is not intended to be a reserved word. Other subdirectories can be created that are called "root."</p></div>
+      </li>
+    </ul>
+    <p>Each <a>origin</a> has one <a>root</a> <a href="#directoryConcept">directory</a>.</p>
+     <p>User agents must maintain an internal per-<a>origin</a> <dfn>Directory Tree</dfn> of <a href="#directoryConcept">directories</a> and files, along with the affiliated <a>path from root</a> for each <a href="#directoryConcept">directory</a> and file; each <a href="#directoryConcept">directory</a> or file must correspond to a node in the <a>Directory Tree</a>, with the <a>root</a> <a href="#directoryConcept">directory</a> being the <em>root</em> of the <a>Directory Tree</a>. </p>
+     <p>A <dfn>Directory Pointer</dfn> is a pointer to a position in the <a>Directory Tree</a>; unless specified otherwise, it initally points to the <a>root</a> of the <a>Directory Tree</a>.</p>
+    <p>The <dfn>present working directory</dfn> is the node on the <a>Directory Tree</a> that represents the current <a href="#directoryConcept">directory</a> from which an operation is taking place. In this specification, this is the <a>context object</a> from which a <a><code>Directory</code></a> operation is called. </p>
+    <p>A <a>path</a> to a given <a href="#directoryConcept">directory</a> from the <a>root</a> <a href="#directoryConcept">directory</a> is said to be a <dfn>path from root</dfn> and always begins with a leading U+002F SOLIDUS ("/"). A <a>path</a> that is relative only from the <a>present working directory</a> is said to be a <dfn>relative path</dfn>, and does not begin with a U+002F SOLIDUS ("/").</p>
+    <div class="note"><p>The <a>present working directory</a> may also be the <a>root</a> <a>Directory</a>, in which case the <a>path</a> does not need to begin with a leading U+002F SOLIDUS ("/"). If the <a>present working Directory</a> is the <a>root</a> <a href="#directoryConcept">directory</a>, then all <a>path</a>s to other directories or files can be represented by <a>relative path</a>s. </div>
+      <pre class="example highlight">
+var path = "/music/genres/jazz"; // path from root to jazz Directory
+
+// set genres directory to the present working Directory:
+
+var pathToJazz = "jazz"; // relative path from within genres to jazz Directory </pre>
+<p>When this specification says to <dfn id="addToDirectoryTree">add d to the Directory Tree</dfn>, where <var>d</var> is either a file or a <a href="#directoryConcept">directory</a>, a user agent must add <var>d</var> to the <a>Directory Tree</a>, along with its <a>path from root</a>.</p>
+<div class="note"><p>Adding to the <a>Directory Tree</a> involves allocating storage for a <a href="#directoryConcept">directory</a> or a file; failure to allocate storage causes promises getting rejected with a <code>QuotaExceededError</code>.</p></div>
+<p>When this specification says to <dfn id="removeFromDirectoryTree">remove d from the Directory Tree</dfn>, where <var>d</var> is either a file or a <a href="#directoryConcept">directory</a>, a user agent must remove <var>d</var> from the <a>Directory Tree</a>; in particular, this removes the <a>path from root</a> that <var>d</var> had, along with any data or storage associated with <var>d</var>. If <var>d</var> has files or <a href="#subdirectoryConcept">subdirectories</a> these must also be recursively removed.</p> 
+<p>When this specification says to <dfn id="crawl-the-entire-path">crawl the entire path</dfn> for a given <a>path</a> <var>p</var>, the following steps must be run:</p>
+<ol>
+  <li><p>Let <var>input</var> be set to <a>path</a>, <var>position</var> be a pointer to <var>input</var>, initially set to the first character of <var>input</var>, and <var>tokens</var> be a list of tokens, initially empty. If <var>input</var> is a single U+002F SOLIDUS character, set the <a>Directory Pointer</a> to the <a>root</a> <a href="#directoryConcept">directory</a></a> and terminate this algorithm.</p></li>
+  <li><p>If the character at <var>position</var> is a U+002F SOLIDUS character ("/"), set the <a>Directory Pointer</a> to <a>root</a>; this represents a <a>path from root</a>. Otherwise, set it to the <a>present working directory</a>. <a href="#strictly-split-a-string">Strictly split</a> <var>input</var> on the U+002F SOLIDUS character. </p></li>
+  <li>For each token in <var>tokens</var>, if the next position of the <a>Directory Pointer</a> strictly matches the <a>name</a> of a <a href="#directoryConcept">directory</a> or a file, advance the <a>Directory Pointer</a> to that <a href="#directoryConcept">directory</a> or file. If it does not strictly match, return failure.</p></li>
+
+</ol>
+<p>When this specification says to <dfn id="crawl-the-path-until-node-n">crawl the path until node n</dfn> for a given <a>path</a> <var>p</var> and value for <var>n</var>, the following steps must be run:</p>
+<ol>
+  <li><p>Let <var>input</var> be set to <a>path</a>, <var>position</var> be a pointer to <var>input</var>, initially set to the first character of <var>input</var>, and <var>tokens</var> be a list of tokens, initially empty. If <var>input</var> is a single U+002F SOLIDUS character, set the <a>Directory Pointer</a> to the <a>root</a> <a href="#directoryConcept">directory</a></a> and terminate this algorithm.</p></li>
+  <li><p>If the character at <var>position</var> is a U+002F SOLIDUS character ("/"), set the <a>Directory Pointer</a> to <a>root</a>; this represents a <a>path from root</a>. Otherwise, set it to the <a>present working directory</a>. <a href="#strictly-split-a-string">Strictly split</a> <var>input</var> on the U+002F SOLIDUS character. </p></li>
+  <li><p>If n ≥ the number of tokens in <var>tokens</var>, run the <a>crawl the entire path</a> algorithm and terminate this algorithm.</p></li>
+  <li>Otherwise, for each token in <var>tokens</var> up to the nth token, if the next position of the <a>Directory Pointer</a> strictly matches the <a>name</a> of a <a href="#directoryConcept">directory</a>, advance the <a>Directory Pointer</a> to that <a href="#directoryConcept">directory</a>. If it does not strictly match, return failure.</p></li>
+
+</ol>
+<div class="note"><p>Other more optimal ways exist of verifying a <a>path</a> in the <a>Directory Tree</a>. These algorithms are provided for specification purposes only.</p></div>
+    
+</section>
   <section>
     <h2>Extensions to Existing Objects</h2>
     <p>The FileSystem API is exposed to the Web via an extension to the <code>window.navigator</code> object [[!HTML]].  A URL-generating method for individual files within the virtualized filesystem is generated via an extension to the <code>window.URL</code> object [[!URL]].</p>
     <section id="extensionNav">
       <h3>Extension to Navigator</h3>
     <dl title='partial interface Navigator' class='idl'>
-      <dt>Promise&lt;Directory> getFileSystem(optional FileSystemParameters parameters)</dt>
+      <dt>Promise&lt;Directory?> getFileSystem()</dt>
   <dd>
-    <p>The <code>getFileSystem</code> method returns a new <code>Promise</code> object which is a , the <code>getFileSystem</code> must perform the following steps:</p>
-    <ol><li><p></p></ol>
+    <p>The <code>getFileSystem</code> method returns a <code>Promise</code> that is either fulfilled with the <a>root</a> <a><code>Directory</code></a> object or fulfilled with <code>null</code> if the <a>root</a> <a><code>Directory</code></a> object cannot be returned. The <code>getFileSystem</code> method must act as follows:</p>
+    <ol>
+      <li><p>Let <var>promise</var> be a new promise and run the next steps asynchronously.</p></li>
+      <li><p>Resolve or reject <var>promise</var> according to the <a>Directory Creation Steps</a> with no value given for <a>path</a>.</p>
+  </li>
+  <li>Return <var>promise</var>.</li>
+
+  </ol>
   </dd>
 </dl>
 </section>
 <section id="extensionURL">
   <h3>Extension to URL</h3>
   <dl title='partial interface URL' class='idl'>
-  <dt>static DOMString? getPersistentURL(File file)</dt>
+  <dt>static DOMString? getFileSystemURL(File file)</dt>
   <dd>
-    <p>TBD</p>
+    <p>This method must return a URL containing the <a>path from root</a> to the File object argument.</p>
+    <div class="issue"><p>TODO: specify this.</p></div>
   </dd>
   </dl>
 </section>
   </section>
-  <section>
+  <section id="Directory">
     <h2>The Directory Interface</h2>
+    <p><a><code>Directory</code></a> objects represent a <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>, and allow for API operations on that <a href="#directoryConcept">directory</a> or the <a>Directory Tree</a> itself. The <a>root</a> <a><code>Directory</code></a> object corresponds to the <a>root</a> <a href="#directoryConcept">directory</a>.</p>
+    <section id="DirectoryOrigin">
+      <h2>Origin of a Directory</h2>
+      <p>The <a>origin</a> of a <a><code>Directory</code></a> is the same as the <a>origin</a> of the <a><code>document</code></a> or <a><code>worker</code></a>. Each <a>origin</a> has one <a><code>root</code></a> <a><code>Directory</code></a>.</p>
+      <div class="note"><p>The <a>origin</a> of the <a>root</a> <a><code>Directory</code></a> is not affected by changes to <code>document.domain</code>.</p></div>
+    </section>
+    <section id="DirectoryPromise">
+     <h2>Resolving or Rejecting a Directory-Creating Promise</h2> 
+      <p>When this specification says to <em>resolve or reject a promise p</em> according to the <dfn>Directory Creation Steps</dfn>, a conforming implementation must run the following steps within the asynchronous block that invoked this algorithm, and return control back to the invoking algorithm after resolving or rejecting <var>p</var>:</p>
+      <ol>
+        <li><p>If the method was invoked without a <a>path</a> argument, run the following <a><code>root</code></a> <a><code>Directory</code></a> substeps:</p>
+        <ol>
+          <li><p>If the <a><code>root</code></a> <a><code>Directory</code></a> cannot be returned by the implementation, resolve <var>p</var> with null.</p>
+            <div class="note"><p>The invocation without a path argument occurs from <code>navigator.getFileSystem()</code>. In practice, there are few reasons for a user agent to not return a <code>root</code> <a><code>Directory</code></a> object; various errors may arise from <a><code>Directory</code></a> operations on the <a><code>root</code></a> <a><code>Directory</code></a>, but failure to create a <a><code>root</code></a> <a><code>Directory</code></a> should fulfill a Promise with <code>null</code>.</p></div>
+          </li>
+          <li>Otherwise, resolve <var>p</var> with the <a><code>root</code></a> <a><code>Directory</code></a>. 
+          </li>
+        </ol> 
+        </li>
+        <li><p>Otherwise the method was invoked with a <a>path</a> argument. Run the following <a><code>Directory</code></a> creation for a <a>path</a> argument steps:</p>
+          <ol>
+            <li><p>If the <a>path</a> argument is the empty string, then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
+            <li><p>If the <a>path</a> argument is a single U+002F SOLIDUS character ("/") then resolve <var>p</var> with the <a><code>root</code></a> <a><code>Directory</code></a>.</p></li>
+            <li><p>Otherwise let <var>input</var> be set to the <a>path</a> argument, and let <var>position</var> be a pointer to <var>input</var>, initially pointing to the first character of <var>input</var>. Let <var>dirname</var> initially be set to the empty string, and let <var>tokens</var> be an ordered list of tokens, initally empty. If the character at <var>position</var> is a U+002F SOLIDUS character ("/"), set the <a>Directory Pointer</a> to the <a>root</a> of the <a>Directory Tree</a>, and advance <var>position</var> by one character. If not, set the <a>Directory Pointer</a> to the <a>present working directory</a>. <a href="#strictly-split-a-string">Strictly split</a> <var>input</var> on the U+002F SOLIDUS character ("/").</p></li>
+            <li><p>While there are tokens in <var>tokens</var>, set <var>dirname</var> to initially equal the first token in <var>tokens</var>, moving to the next one at each iteration, and run the following substeps:</p>
+              <ol><li> If <var>dirname</var> strictly matches a <a href="#subdirectoryConcept">subdirectory</a> <a>name</a> that is the next position of the <a>Directory Pointer</a>, advance the <a>Directory Pointer</a> to the position on the <a>Directory Tree</a> that corresponds to the <a href="#directoryConcept">directory</a> named <var>dirname</var> and reset <var>dirname</var> to the empty string.</li>
+              <li> If <var>dirname</var> does not strictly match the next position of the <a>Directory Pointer</a>, then <a href="#addToDirectoryTree">add to the Directory Tree</a> a <a><code>Directory</code></a> called <var>dirname</var> and advance the <a>Directory Pointer</a> to the newly created <a>Directory</a> and reset <var>dirname</var> to the empty string. If <a href="#addToDirectoryTree">adding to the Directory Tree</a> raises any error, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a>. </p></li>
+            </li></ol>
+            <li><p>If all values of <var>dirname</var> strictly match the <a>name</a> of nodes on the <a>Directory Tree</a>, and <em>no new directories are added</em> to the <a>Directory Tree</a>, reject <var>p</var> with an <code>InvalidModificationError</code>.</p></li>
+            <li><p>Otherwise, resolve <var>p</var> with a new <a><code>Directory</code></a> <var>d</var> with the following properties:</p>
+              <ul><li><code>d.name</code> is set to the last token in <var>tokens</var>; this must correspond to the last <a href="#directoryConcept">directory</a> <a href="#addToDirectoryTree">added</a> to the <a>Directory Tree</a>.</li>
+                  <li><p><var>d</var> is set to be the <a>present working directory</a>.</p>
+                    <div class="note"><p>Subsequent <a><code>Directory</code></a> operations on <var>d</var> that use a <a>relative path</a> will set the <a>Directory Pointer</a> to <var>d</var>. </p></div>
+                  </li>
+              </ul>
+          </li>
+        </ol>
+      </li>
+      </ol>
+    </section>
+    <section id="rejectionDirectoryPromise">
+      <h2>Directory Promise Rejection Error Table</h2>
+      <p>Rejection of <a><code>Directory</code></a>-creation promises occur with the errors and reasons shown in the <dfn>Directory Promise Rejection Error Table</dfn> below.</p>
+        <table><thead><tr><th>Type
+       </th><th>Description and Failure Reason
+     </th></tr></thead><tbody><tr><td><dfn id="dfn-QuotaExceededError" title="QuotaExceededError"><code>QuotaExceededError</code></dfn>
+       </td><td><p>If no storage space exists for a <a href="#directoryConcept">directory</a> creation operation.</p>
+
+      </td></tr><tr><td><dfn id="dfn-SecurityError" title="SecurityError"><code>SecurityError</code></dfn>
+       </td><td><p>If the user agent determines that the <a href="directoryConcept">directory</a> creation operation causes a security risk.</p>
+
+      </td></tr></tbody></table>
+    </section>
 <dl title='[Exposed=Window,Worker] interface Directory' class='idl'>
   <dt>readonly attribute DOMString name</dt>
   <dd>
-    <p>TBD</p>
+    <p>On getting, this must be the <a>name</a> of the underlying <a href="#directoryConcept">directory</a>.</p>
   </dd>
-  <dt>Promise&lt;File> createFile(DOMString path, createFileOptions options)</dt>
+  <dt>Promise&lt;File> createFile(DOMString path, CreateFileOptions options)</dt>
   <dd>
-    <p>TBD</p>
+    <p>When the <code>createFile(path, options)</code> method is run, the user agents must run the steps below:</p>
+    <ol>
+      <li>Let <var>p</var> be a new promise.</li>
+      <li>Run the following steps asynchronously:
+        <ol>
+          <li><p><a href="#strictly-split-a-string">Strictly split</a> the <code>path</code> argument on the U+002F SOLIDUS character. Let n be the total number of resulting <var>tokens</var>. </p></li>
+          <li><p>If <a href="#crawl-the-path-until-node-n">crawling the path until node n-1</a> for the <code>path</code> argument returns failure, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
+          <div class="note"><p>This method creates <code>File</code> objects, and does not add <a href="#directoryConcept">directory</a> nodes to the <a>Directory Tree</a>. If the <a>path</a> cannot be crawled, this promise is rejected.</p></div>  
+          </li>
+          <li>Otherwise, if the nth token in <var>tokens</var> strictly matches the name of a file at the next position of the <a>Directory Pointer</a>, run the following substeps:
+            <ol>
+              <li>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "fail" then reject <var>p</var> with a <code>NoModificationAllowedError</code>.</li>
+              <li>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "replace" then run the following substeps:
+                <ol>
+                  <li>Let <var>f</var> be a new <code>File</code> constructed according to the <a>File Constructor Steps</a>, replacing the <code>fileBits</code> sequence with the <code>data</code> member of the <code>options</code> argument, the <code>fileName</code> with the nth token in <var>tokens</var>, and the <code>FilePropertyBag</code> with the <a><code>FilePropertyBag</code></a> member of <code>options</code> argument.</li>
+                  <li><a href="#removeFromDirectoryTree">Remove the file</a> at the at the next position of the <a>Directory Pointer</a>.</li>
+                  <li><a href="#addToDirectoryTree">Add the file</a> represented by <var>f</var> to the next position of the <a>Directory Pointer</a> and advance the <a>Directory Pointer</a> to point to <var>f</var>. If <a href="#addToDirectoryTree">adding to the Directory Tree</a> raises any error, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a>.</li>
+                  <li>Otherwise, resolve <var>p</var> with <var>f</var>.</li>
+                  
+                </ol>
+              </li>
+            </ol>
+          </li>
+          <li>If the nth token does not strictly match the name of a file at the next position of the <a>Directory Pointer</a> run the following substeps:
+                <ol>
+                  <li>Let <var>f</var> be a new <code>File</code> constructed according to the <a>File Constructor Steps</a>, replacing the <code>fileBits</code> sequence with the <code>data</code> member of the <code>options</code> argument, the <code>fileName</code> with the nth token in <var>tokens</var>, and the <code>FilePropertyBag</code> with the <a><code>FilePropertyBag</code></a> member of <code>options</code> argument.</li>
+                  <li><a href="#addToDirectoryTree">Add the file</a> represented by <var>f</var> to the next position of the <a>Directory Pointer</a> and advance the <a>Directory Pointer</a> to point to <var>f</var>. If <a href="#addToDirectoryTree">adding to the Directory Tree</a> raises any error, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a>.</li>
+                  <li>Otherwise, resolve <var>p</var> with <var>f</var>.</li>
+                  
+                </ol>                
+
+            </li>
+          </ol>
+        </li>
+        <li>Return <var>p</var></li>
+      </ol>
+          
   </dd>
   <dt>Promise&lt;Directory> createDirectory(DOMString path)</dt>
   <dd>
-    <p>TBD</p>
+    <p>When the <code>createDirectory(path)</code> method is called, the user agent must run the steps below:</p>
+    <ol>
+      <li>Let <var>p</var> be a new promise and run the next step asynchronously.</li>
+      <li>Resolve or reject <var>p</var> according to the <a>Directory Creation Steps</a>, using the <a>path</a> argument.</li>
+      <li>Return <var>p</var></li>
+    </ol>
+    <dl class="parameters">
+      <dt>DOMString path</dt>
+      <dd>This parameter represents the <a>path</a>; user agents must interpret it as a <a>path from root</a> or a <a>relative path</a>.</dd>
+    </dl>
+   
   </dd>
   <dt>Promise&lt;(File or Directory)> get(DOMString path)</dt>
   <dd>
     <p>TBD</p>
   </dd>
-  <dt>AbortableProgressPromise&lt;void>
+  <dt>Promise&lt;void>
     move((DOMString or File or Directory) path,
          (DOMString or Directory or DestinationDict) dest)</dt>
   <dd>
@@ -224,7 +445,6 @@
   
 </dl>
   </section>
-  <section>
     <h2>The FileHandle interface</h2>
   <dl title='interface FileHandle' class='idl'>
    <dt>readonly attribute FileOpenMode mode</dt>
@@ -243,7 +463,7 @@
   <dd>
     <p>TBD</p>
   </dd>
-  <dt>AbortableProgressPromise&lt;ArrayBuffer> read(unsigned long long size) </dt>
+  <dt>Promise&lt;ArrayBuffer> read(unsigned long long size) </dt>
   <dd>
     <p>TBD</p>
   </dd>
@@ -256,7 +476,7 @@
 <section>
 <h2>The FileHandleWritable Interface</h2>
  <dl title='interface FileHandleWritable : FileHandle' class='idl'>
-<dt>AbortableProgressPromise&lt;void> write((DOMString or ArrayBuffer or
+<dt>Promise&lt;void> write((DOMString or ArrayBuffer or
 ArrayBufferView or Blob) value)</dt>
 <dd>
     <p>TBD</p>
@@ -273,28 +493,15 @@ ArrayBufferView or Blob) value)</dt>
 </section>
 <section>
 <h2>FileSystem Configuration Parameters</h2>
-<dl title="enum StorageType" class="idl">
-  <dt>temporary</dt>
-   <dd>
-    <p>TBD</p>
-  </dd>
-  <dt>persistent</dt>
-   <dd>
-    <p>TBD</p>
-  </dd>
-</dl>
-<dl title="dictionary FileSystemParameters" class="idl">
-  <dt>StorageType storage = "temporary"</dt>
-   <dd>
-    <p>TBD</p>
-  </dd>
-</dl>
 <dl title="dictionary CreateFileOptions" class="idl">
   <dt>CreateIfExistsMode ifExists = "fail"</dt>
    <dd>
     <p>TBD</p>
   </dd>
-  <dt>(DOMString or Blob or ArrayBuffer or ArrayBufferView) data</dt>
+  <dt>sequence&lt;(DOMString or Blob or ArrayBuffer or ArrayBufferView)&gt; data</dt>
+    <dd><p></p></dd>
+  <dt>FilePropertyBag config</dt>
+    <dd><p></p></dd>
 </dl>
 <dl title="dictionary OpenWriteOptions" class="idl">
  <dt>OpenIfNotExistsMode ifNotExists = "create"</dt>
@@ -305,6 +512,12 @@ ArrayBufferView or Blob) value)</dt>
   <dd>
     <p>TBD</p>
   </dd>
+</dl>
+<dl title="dictionary FilePropertyBag" class="idl">
+  <dt>DOMString type = ""</dt>
+  <dd></dd>
+  <dt>long long lastModified</dt>
+  <dd></dd>
 </dl>
 <dl title="enum CreateIfExistsMode" class="idl">
 <dt>replace</dt>
