@@ -92,6 +92,9 @@
     <section id='abstract'>
       <p>The FileSystem API defines functionality on a local sandboxed file system within the same origin of the Web Application that created it. It exposes standard file system operations to Web Applications, such as creation of files and directories, and reading, writing, and copying files and directories.  It builds on top of the [[!FileAPI]] and uses Promises for asynchronous functionality [[!ECMAScript]].</p>
     </section>
+    <section id="sotd">
+      Portions of this specification are in flux, and are likely to be re-written; where appropriate, these have been marked as ISSUES by the editor. Implementors are encouraged to contribute to discussions on the <a href="http://lists.w3.org/Archives/Public/public-webapps/">public-webapps@w3.org</a> mailing list. This work uses the "<a href="http://dev.w3.org/2009/dap/file-system/file-dir-sys.html">File API: Directories and System</a>" W3C Note as a starting point.
+    </section>
     
     <section id='introduction' class='informative'>
       <h2>Introduction</h2>
@@ -212,16 +215,18 @@
   </section>
   <section id="terminology">
     <h2>Terminology</h2>
-    <p>The terms <dfn id="Blob">Blob</dfn>, <dfn id="File">File</dfn>, and <dfn>File Constructor Steps</dfn> are as defined by the [[!FileAPI]] specification.</p>
+    <p>The terms <dfn id="Blob">Blob</dfn>, <dfn id="File">File</dfn>, <dfn>Unix Epoch</dfn>, and <dfn>File Constructor Steps</dfn> are as defined by the [[!FileAPI]] specification.</p>
     <p>The terms <dfn id="scheme">scheme</dfn>, <dfn id="scheme-data">scheme data</dfn>, and <dfn id="URL">URL</dfn> are as defined by the [[!URL]] specification.</p>
     <p>The term <dfn id="origin">origin</dfn> is used as defined by the Web Origin Specification [[!ORIGIN]].</p>
     <p>The term <dfn id="worker"><code>worker</code></dfn> is defined by the WebWorkers specification [[!WEBWORKERS]].</p>
-    <p>The terms <dfn>context object</a>, <dfn id="strictly-split-a-string">strictly split a string</dfn>, and <dfn id="document"><code>document</code></dfn> are defined by the HTML specification [[!HTML]].</p>
+    <p>The terms <dfn>context object</dfn>, <dfn id="strictly-split-a-string">strictly split a string</dfn>, and <dfn id="document"><code>document</code></dfn> are defined by the HTML specification [[!HTML]].</p>
 
 </section>
 <section>
   <h2>Model</h2>
-  <p>A <dfn id="directoryConcept">directory</dfn> is a logical organizing storage unit with a distinct <dfn>name</dfn> which contains files and/or one or more <dfn id="subdirectoryConcept">subdirectory</dfn> units (which are themselves <a href="#directoryConcept">directory</a> units). The <a href="#directoryConcept">directory</a> is organized by a hierarchical containment structure, which can also be represented by a string, called a <dfn>path</dfn>; the <a>path</a> string uses the U+002F SOLIDUS character ("/") to denote directories within the <a>Directory Tree</a>. </p>
+  <section>
+    <h3>Directory, File, Root, and Path</h3>
+  <p>A <dfn id="directoryConcept">directory</dfn> is a logical organizing storage unit with a distinct <dfn>name</dfn> which contains files and/or one or more <dfn id="subdirectoryConcept">subdirectory</dfn> units (which are themselves <a href="#directoryConcept">directory</a> units). The <a href="#directoryConcept">directory</a> is organized by a hierarchical containment structure, which can also be represented by a string, called a <dfn>path</dfn>; the <a>path</a> string uses the U+002F SOLIDUS character ("/") to denote directories within the <a>Directory Tree</a>. A file in this specification is as defined in the [[!FileAPI]], and is represented by a <code>File</code> object. Files, like directories, have distinct <a>name</a>s which identify them on the <a>Directory Tree</a>.</p>
     <p> The top-most containing <a href="#directoryConcept">directory</a>, which contains all <a href="#directoryConcept">directories</a> and files, if any exist, is called the <dfn>root</dfn> <a href="#directoryConcept">directory</a>, and has the following properties:</p> 
     <ul>
       <li>It is not contained by any other <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>; it contains all others.</li>
@@ -231,7 +236,11 @@
       </li>
     </ul>
     <p>Each <a>origin</a> has one <a>root</a> <a href="#directoryConcept">directory</a>.</p>
+  </section>
+  <section>
+    <h3>The Directory Tree</h3>
      <p>User agents must maintain an internal per-<a>origin</a> <dfn>Directory Tree</dfn> of <a href="#directoryConcept">directories</a> and files, along with the affiliated <a>path from root</a> for each <a href="#directoryConcept">directory</a> and file; each <a href="#directoryConcept">directory</a> or file must correspond to a node in the <a>Directory Tree</a>, with the <a>root</a> <a href="#directoryConcept">directory</a> being the <em>root</em> of the <a>Directory Tree</a>. </p>
+     <div class="note"><p>The corollary to this is that for each file or <a href="#directoryConcept">directory</a>, user agents are required to maintain the position of that file or <a href="#directoryConcept">directory</a> on the <a>Directory Tree</a>.</p></div> 
      <p>A <dfn>Directory Pointer</dfn> is a pointer to a position in the <a>Directory Tree</a>; unless specified otherwise, it initally points to the <a>root</a> of the <a>Directory Tree</a>.</p>
     <p>The <dfn>present working directory</dfn> is the node on the <a>Directory Tree</a> that represents the current <a href="#directoryConcept">directory</a> from which an operation is taking place. In this specification, this is the <a>context object</a> from which a <a><code>Directory</code></a> operation is called. </p>
     <p>A <a>path</a> to a given <a href="#directoryConcept">directory</a> from the <a>root</a> <a href="#directoryConcept">directory</a> is said to be a <dfn>path from root</dfn> and always begins with a leading U+002F SOLIDUS ("/"). A <a>path</a> that is relative only from the <a>present working directory</a> is said to be a <dfn>relative path</dfn>, and does not begin with a U+002F SOLIDUS ("/").</p>
@@ -242,14 +251,42 @@ var path = "/music/genres/jazz"; // path from root to jazz Directory
 // set genres directory to the present working Directory:
 
 var pathToJazz = "jazz"; // relative path from within genres to jazz Directory </pre>
+<div class="issue"><p>Should additional definition be added to allow for "../.../myDir/yourDir" style path navigation under relative paths? Currently, we only allow <em>forward</em> path navigation; allowing "../../" will allow <em>backward</em> path navigation.</p></div>
+<p>A <dfn>child</dfn> is a node on the <a>Directory Tree</a> with a position that is below a given position on the <a>Directory Tree</a> for a given <a href="#directoryConcept">directory</a>; a <a href="#subdirectoryConcept">subdirectory</a> of the <a>present working directory</a> is a <a>child</a> of the <a>present working directory</a>; a <a href="#subdirectoryConcept">subdirectory</a> of <em>that</em> <a href="#subdirectoryConcept">subdirectory</a> is also a <a>child</a> of the <a>present working directory</a>. An <dfn>immediate child</dfn> corresponds to a node on the <a>Directory Tree</a> that is either a <a href="#subdirectoryConcept">subdirectory</a> that is the next position on the <a>path</a>, or a file that is next on the <a>path</a>. A <dfn>parent</dfn> is a <a href="#directoryConcept">directory</a> that contains a file or another <a href="#directoryConcept">directory</a>; in particular, the <a href="#directoryConcept">directory</a> that contains the <a>present working directory</a> is its <a>parent</a>. The <a>root</a> <a href="#directoryConcept">directory</a> is the <a>parent</a> of all other nodes in the <a>Directory Tree</a>.</p>
 <p>When this specification says to <dfn id="addToDirectoryTree">add d to the Directory Tree</dfn>, where <var>d</var> is either a file or a <a href="#directoryConcept">directory</a>, a user agent must add <var>d</var> to the <a>Directory Tree</a>, along with its <a>path from root</a>.</p>
-<div class="note"><p>Adding to the <a>Directory Tree</a> involves allocating storage for a <a href="#directoryConcept">directory</a> or a file; failure to allocate storage causes promises getting rejected with a <code>QuotaExceededError</code>.</p></div>
-<p>When this specification says to <dfn id="removeFromDirectoryTree">remove d from the Directory Tree</dfn>, where <var>d</var> is either a file or a <a href="#directoryConcept">directory</a>, a user agent must remove <var>d</var> from the <a>Directory Tree</a>; in particular, this removes the <a>path from root</a> that <var>d</var> had, along with any data or storage associated with <var>d</var>. If <var>d</var> has files or <a href="#subdirectoryConcept">subdirectories</a> these must also be recursively removed.</p> 
+<div class="note"><p>Adding to the <a>Directory Tree</a> involves allocating storage for a <em>new</em> <a href="#directoryConcept">directory</a> or a file, but not necessarily allocating storage for a pre-existing one, which can be added to the <a>Directory Tree</a> through a <a href="#transfer">transfer</a> operation. Failure to allocate storage owing to disk quota issues causes promises in this specification to get rejected with a <code>QuotaExceededError</code>.</p></div>
+<p>When this specification says to <dfn id="removeFromDirectoryTree">remove d from the Directory Tree</dfn>, where <var>d</var> is either a file or a <a href="#directoryConcept">directory</a>, a user agent must remove <var>d</var> from the <a>Directory Tree</a>; in particular, this <a href="#removeThePath">removes the path</a> that <var>d</var> had and removes data associated with <var>d</var>. If <var>d</var> has files or <a href="#subdirectoryConcept">subdirectories</a> these must also be recursively removed, including the storage affiliated with each <a>child</a>.</p>
+<div class="note"><p>User agents should determine if the storage can be reallocated for subsequent operations.</p></div>
+<p>When this specification says to <dfn id="removeThePath">remove the path</dfn> for a particular node, which is either a file or a <a href="#directoryConcept">directory</a>, a user agent must remove the <a>path from root</a> for that node, without removing the storage allocated to that node or removing its data. This includes recursively removing the <a>path from root</a> for any <a>child</a> of that node, which applies only to <a href="#directoryConcept">directories</a>. </p> 
+<p>When this specification says to <dfn id="transfer">transfer e to directory d</dfn>, where <var>e</var> is either a file or a <a href="#directoryConcept">directory</a>, the following steps must be followed, taking care to check for <a>illegal transfers</a>:</p>
+  <ol>
+    <li><p><a href="#removeThePath">Remove the path</a> for <var>e</var>.</p></li>
+    <li><p>If there is already a file or <a href="#directoryConcept">directory</a> <var>o</var> with the identical name as <var>e</var> in <var>d</var>, run the following substeps:  </p>
+    <ol>
+      <li><p><a href="#removeFromDirectoryTree">Remove o from the Directory Tree</a>.</p>
+      <div class="note"><p>This includes recursively removing any <a>child</a> nodes of <var>o</var>.</p></div>  
+      </li>
+      <li><p><a href="#addToDirectoryTree">Add e to the Directory Tree</a> such that <var>e</var> is an <a>immediate child</a> of <var>d</var>. If <var>e</var> is <a href="#directoryConcept">directory</a>, it becomes a <a href="#subdirectoryConcept">subdirectory</a> of <var>d</var>. If <var>e</var> is a file, it becomes a file contained by <var>d</var>.</p></li>
+    </ol>  
+    </li>
+    <li><p>If <var>e</var> and <var>d</var> are identical, then terminate this algorithm, unless it is a <a href="#renamingOperation">renaming operation</a>.</p></li>
+    <li><p>Otherwise <a href="#addToDirectoryTree">add e to the Directory Tree</a> such that <var>e</var> is an <a>immediate child</a> of <var>d</var>. If <var>e</var> is <a href="#directoryConcept">directory</a>, it becomes a <a href="#subdirectoryConcept">subdirectory</a> of <var>d</var>. If <var>e</var> is a file, it becomes a file contained by <var>d</var>.</p></li>
+  </ol>
+<div class="note"><p>Like <a href="#addToDirectoryTree">adding to the Directory Tree</a>, a <a href="#transfer">transfer</a> may generate storage quota errors.</p></div>
+<p>The set of <dfn id="illegal">illegal transfers</dfn> which methods invoking the <a href="#transfer">transfer</a> algorithm must prevent are:</p>
+<ul>
+<li>A <a>parent</a> must never be <a href="#transfer">transferred</a> to a child.</li>
+<li>A <a href="#directoryConcept">directory</a> must never be transferred to itself, unless it is a <a href="#renamingOperation">renaming operation</a>.</li>
+<li>A <a>child</a> <var>a</var> of <var>b</var> can never be transferred to the <a>parent</a> of <var>b</var> if it has the same name as <var>b</var>. </li>
+</ul>
+<div class="issue"><p>TODO: See if there is a cohesive algorithm which results in better promise rejection messages for the <code>move</code> operation.</p></div>
+<p>When this specification says to do a <dfn id="#renamingOperation">renaming operation</dfn> with a <em>new</em> <a>name</a> on a node <var>e</var> on the <a>Directory Tree</a>, where <var>e</var> is either a file or a <a href="#directoryConcept">directory</a>, user agents must change the <a>name</a> of <var>e</var> to the <em>new</em> <a>name</a>. If a <a href="#transfer">transfer</a> is invoked on two nodes, <var>e</var> and <var>d</var>, that identify the same node on the <a>Directory Tree</a>, unless <var>d</var> is supplied with a new <a>name</a>, the transfer is considered an <a href="#illegal">illegal transfer</a>. If the method invoking the <a href="#transfer">transfer</a> is supplied a new <a>name</a>, then it can perform a <a href="#renamingOperation">renaming operation</a>.</p>
+<div class="note"><p>The change to the underlying model's node <var>e</var> will result in a new object, or invalidate existing <a><code>File</code></a> and <a><code>Directory</code></a> objects referring to the underlying resource with the old <a>name</a>, which no longer exists. </p></div>
 <p>When this specification says to <dfn id="crawl-the-entire-path">crawl the entire path</dfn> for a given <a>path</a> <var>p</var>, the following steps must be run:</p>
 <ol>
   <li><p>Let <var>input</var> be set to <a>path</a>, <var>position</var> be a pointer to <var>input</var>, initially set to the first character of <var>input</var>, and <var>tokens</var> be a list of tokens, initially empty. If <var>input</var> is a single U+002F SOLIDUS character, set the <a>Directory Pointer</a> to the <a>root</a> <a href="#directoryConcept">directory</a></a> and terminate this algorithm.</p></li>
   <li><p>If the character at <var>position</var> is a U+002F SOLIDUS character ("/"), set the <a>Directory Pointer</a> to <a>root</a>; this represents a <a>path from root</a>. Otherwise, set it to the <a>present working directory</a>. <a href="#strictly-split-a-string">Strictly split</a> <var>input</var> on the U+002F SOLIDUS character. </p></li>
-  <li>For each token in <var>tokens</var>, if the next position of the <a>Directory Pointer</a> strictly matches the <a>name</a> of a <a href="#directoryConcept">directory</a> or a file, advance the <a>Directory Pointer</a> to that <a href="#directoryConcept">directory</a> or file. If it does not strictly match, return failure.</p></li>
+  <li><p>For each token in <var>tokens</var>, if the next position of the <a>Directory Pointer</a> strictly matches the <a>name</a> of a <a href="#directoryConcept">directory</a> or a file, advance the <a>Directory Pointer</a> to that <a href="#directoryConcept">directory</a> or file. If it does not strictly match, return failure.</p></li>
 
 </ol>
 <p>When this specification says to <dfn id="crawl-the-path-until-node-n">crawl the path until node n</dfn> for a given <a>path</a> <var>p</var> and value for <var>n</var>, the following steps must be run:</p>
@@ -261,6 +298,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
 
 </ol>
 <div class="note"><p>Other more optimal ways exist of verifying a <a>path</a> in the <a>Directory Tree</a>. These algorithms are provided for specification purposes only.</p></div>
+</section>
     
 </section>
   <section>
@@ -295,7 +333,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </section>
   <section id="Directory">
     <h2>The Directory Interface</h2>
-    <p><a><code>Directory</code></a> objects represent a <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>, and allow for API operations on that <a href="#directoryConcept">directory</a> or the <a>Directory Tree</a> itself. The <a>root</a> <a><code>Directory</code></a> object corresponds to the <a>root</a> <a href="#directoryConcept">directory</a>.</p>
+    <p><a><code>Directory</code></a> objects represent a <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>, and allow for API operations on that <a href="#directoryConcept">directory</a> or the <a>Directory Tree</a> itself, which may affect other <a href="#directoryConcept">directories</a>. The <a>root</a> <a><code>Directory</code></a> object represents the <a>root</a> <a href="#directoryConcept">directory</a>.</p>
     <section id="DirectoryOrigin">
       <h2>Origin of a Directory</h2>
       <p>The <a>origin</a> of a <a><code>Directory</code></a> is the same as the <a>origin</a> of the <a><code>document</code></a> or <a><code>worker</code></a>. Each <a>origin</a> has one <a><code>root</code></a> <a><code>Directory</code></a>.</p>
@@ -348,6 +386,8 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
 
       </td></tr></tbody></table>
     </section>
+    <section>
+      <h2>Directory WebIDL</h2>
 <dl title='[Exposed=Window,Worker] interface Directory' class='idl'>
   <dt>readonly attribute DOMString name</dt>
   <dd>
@@ -357,39 +397,57 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   <dd>
     <p>When the <code>createFile(path, options)</code> method is run, the user agents must run the steps below:</p>
     <ol>
-      <li>Let <var>p</var> be a new promise.</li>
-      <li>Run the following steps asynchronously:
+      <li><p>Let <var>p</var> be a new promise.</p></li>
+      <li><p>Run the following steps asynchronously:</p>
         <ol>
           <li><p><a href="#strictly-split-a-string">Strictly split</a> the <code>path</code> argument on the U+002F SOLIDUS character. Let n be the total number of resulting <var>tokens</var>. </p></li>
           <li><p>If <a href="#crawl-the-path-until-node-n">crawling the path until node n-1</a> for the <code>path</code> argument returns failure, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
           <div class="note"><p>This method creates <code>File</code> objects, and does not add <a href="#directoryConcept">directory</a> nodes to the <a>Directory Tree</a>. If the <a>path</a> cannot be crawled, this promise is rejected.</p></div>  
           </li>
-          <li>Otherwise, if the nth token in <var>tokens</var> strictly matches the name of a file at the next position of the <a>Directory Pointer</a>, run the following substeps:
+          <li><p>Otherwise, if the nth token in <var>tokens</var> strictly matches the name of a file at the next position of the <a>Directory Pointer</a>, run the following substeps:</p>
             <ol>
-              <li>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "fail" then reject <var>p</var> with a <code>NoModificationAllowedError</code>.</li>
-              <li>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "replace" then run the following substeps:
+              <li><p>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "fail" then reject <var>p</var> with a <code>NoModificationAllowedError</code>.</p></li>
+              <li><p>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "replace" then run the following substeps:</p>
                 <ol>
-                  <li>Let <var>f</var> be a new <code>File</code> constructed according to the <a>File Constructor Steps</a>, replacing the <code>fileBits</code> sequence with the <code>data</code> member of the <code>options</code> argument, the <code>fileName</code> with the nth token in <var>tokens</var>, and the <code>FilePropertyBag</code> with the <a><code>FilePropertyBag</code></a> member of <code>options</code> argument.</li>
-                  <li><a href="#removeFromDirectoryTree">Remove the file</a> at the at the next position of the <a>Directory Pointer</a>.</li>
-                  <li><a href="#addToDirectoryTree">Add the file</a> represented by <var>f</var> to the next position of the <a>Directory Pointer</a> and advance the <a>Directory Pointer</a> to point to <var>f</var>. If <a href="#addToDirectoryTree">adding to the Directory Tree</a> raises any error, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a>.</li>
-                  <li>Otherwise, resolve <var>p</var> with <var>f</var>.</li>
+                  <li><p>Let <var>f</var> be a new <code>File</code> constructed according to running the <a>File Constructor Steps</a> with the following modifications:</p>
+                    <ul>
+                      <li><p>Treat the <code>data</code> member of the <code>options</code> dictionary as if it was a single element in the <code>fileBits</code> <code>sequence</code>, and follow the step for that type from the <a>File Constructor Steps</a>.</p></li>
+                      <li><p>Replace the <code>fileName</code> parameter with the nth token in <var>tokens</var>, and normalize it according to the <a>File Constructor Steps</a>.</p></li>
+                      <li><p>If the <code>type</code> member of the <code>options</code> dictionary is provided, normalize it according to the <a>File Constructor Steps</a> for the <code>FilePropertyBag</code> dictionary's <code>type</code> member.</p></li>
+                      <li><p>Set <code>f.lastModifiedDate</code> to the current date and time represented as the number of milliseconds since the <a>Unix Epoch</a> (which is the equivalent of <code>Date.now()</code> [[!ECMAScript]]).</p></li>
+                    </ul>
+
+                  </li>
+                  <li><p><a href="#removeFromDirectoryTree">Remove the file</a> at the at the next position of the <a>Directory Pointer</a> which strictly matches the name of the nth token in <var>tokens</var>.</p></li>
+                  <li><p><a href="#addToDirectoryTree">Add the file</a> represented by <var>f</var> to the next position of the <a>Directory Pointer</a> and advance the <a>Directory Pointer</a> to point to <var>f</var>. If <a href="#addToDirectoryTree">adding to the Directory Tree</a> raises any error, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a>.</p></li>
+                  <li><p>Otherwise, resolve <var>p</var> with <var>f</var>.</p></li>
                   
                 </ol>
               </li>
             </ol>
           </li>
-          <li>If the nth token does not strictly match the name of a file at the next position of the <a>Directory Pointer</a> run the following substeps:
+          <li><p>If the nth token does not strictly match the name of a file at the next position of the <a>Directory Pointer</a> run the following substeps:</p>
                 <ol>
-                  <li>Let <var>f</var> be a new <code>File</code> constructed according to the <a>File Constructor Steps</a>, replacing the <code>fileBits</code> sequence with the <code>data</code> member of the <code>options</code> argument, the <code>fileName</code> with the nth token in <var>tokens</var>, and the <code>FilePropertyBag</code> with the <a><code>FilePropertyBag</code></a> member of <code>options</code> argument.</li>
-                  <li><a href="#addToDirectoryTree">Add the file</a> represented by <var>f</var> to the next position of the <a>Directory Pointer</a> and advance the <a>Directory Pointer</a> to point to <var>f</var>. If <a href="#addToDirectoryTree">adding to the Directory Tree</a> raises any error, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a>.</li>
-                  <li>Otherwise, resolve <var>p</var> with <var>f</var>.</li>
+                  <li><p>Let <var>f</var> be a new <code>File</code> constructed according to the <a>File Constructor Steps</a> with the following modifications:</p>
+                    <ul>
+                      <li><p>Treat the <code>data</code> member of the <code>options</code> dictionary as if it was a single element in the <code>fileBits</code> <code>sequence</code>, and follow the step for that type from the <a>File Constructor Steps</a>.</p></li>
+                      <li><p>Replace the <code>fileName</code> parameter with the nth token in <var>tokens</var>, and normalize it according to the <a>File Constructor Steps</a>.</p></li>
+                      <li><p>If the <code>type</code> member of the <code>options</code> dictionary is provided, normalize it according to the <a>File Constructor Steps</a> for the <code>FilePropertyBag</code> dictionary's <code>type</code> member.</p></li>
+                      <li><p>Set <code>f.lastModifiedDate</code> to the current date and time represented as the number of milliseconds since the <a>Unix Epoch</a> (which is the equivalent of <code>Date.now()</code> [[!ECMAScript]).</p></li>
+
+                    </ul>
+                  </li>
+                  <li><p><a href="#addToDirectoryTree">Add the file</a> represented by <var>f</var> to the next position of the <a>Directory Pointer</a> and advance the <a>Directory Pointer</a> to point to <var>f</var>. If <a href="#addToDirectoryTree">adding to the Directory Tree</a> raises any error, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a></p>.
+                 <div class="issue"><p>Rejection in this algorithm occurs at a later stage than may be desirable; "short-circuiting" this might be good.</p></div>   
+                  </li>
+                  <li><p>Otherwise, resolve <var>p</var> with <var>f</var>.</p></li>
                   
                 </ol>                
 
             </li>
           </ol>
         </li>
-        <li>Return <var>p</var></li>
+        <li><p>Return <var>p</var></p></li>
       </ol>
           
   </dd>
@@ -409,25 +467,172 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </dd>
   <dt>Promise&lt;(File or Directory)> get(DOMString path)</dt>
   <dd>
-    <p>TBD</p>
+    <p>When the <code>get(path)</code> method is called, the user agent must run the steps below:</p>
+    <ol>
+      <li><p>Let <var>p</var> be a new promise.</p></li>
+      <li><p>Run the following steps asynchronously:</p>
+        <ol>
+          <li><p>If <a href="#crawl-the-entire-path">crawling the entire path</a> represented by the <code>path</code> argument returns failure, reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
+          <li><p>Otherwise, set <var>d</var> to the node at the position the <a>Directory Pointer</a> is pointing to, and run the following substeps:</p>
+            <ol>
+              <li><p>If <var>d</var> is a file, resolve <var>p</var> with a new <code>File</code> representing <var>d</var>.</p></li>
+              <li><p>If <var>d</var> is a <a href="#directoryConcept">directory</a>, resolve <var>p</var> with a new <a><code>Directory</code></a> representing <var>d</var>.</p></li>
+            </ol>
+
+          </li>
+        </ol>
+
+
+      </li>
+      <li><p>Return <var>p</var>.</p></li>
+    </ol>
   </dd>
   <dt>Promise&lt;void>
     move((DOMString or File or Directory) path,
          (DOMString or Directory or DestinationDict) dest)</dt>
   <dd>
-    <p>TBD</p>
+    <p>When the <code>move(path, dest)</code> method is called, the user agent must run the steps below:</p>
+    <ol>
+      <li><p>Let <var>p</var> be a new promise.</p></li>
+      <li><p>Run the following steps asynchronously:</p>
+        <ol>
+          <li><p>If <code>path</code> is a <code>DOMString</code>, then <a href="#crawl-the-entire-path">crawl the entire path</a> represented by <code>path</code>. If it returns failure, then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
+          <li><p>If <code>dest</code> is a <code>DOMString</code>, then run the following substeps:</p>
+            <ol>
+              <li><a href="#crawl-the-entire-path">Crawl the entire path</a> represented by <code>dest</code> as a <a>path</a>. If it returns failure, then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
+              <li>If the <a>path</a> represented by <code>dest</code> is a <code>File</code>, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
+              <div class="note"><p>It is an error to move a <a href="#directoryConcept">directory</a> or a file to the location of another file; <code>dest</code> must represent a <a href="#directoryConcept">directory</a>, either through a valid <a>path</a> string, a <a><code>Directory</code></a> object, or the <a><code>DestinationDict</code></a> dictionary argument.</p></div>
+              </li>
+            </ol>
+          </li>
+          <li><p>If the node that corresponds to <code>dest</code> is a <a>child</a> of <code>path</code>, then reject <var>p</var> with an 
+            <code>InvalidStateError</code>.</p>
+          <div class="note"><p>This is an <a href="#illegal">illegal transfer</a>.</p></div>
+          </li>
+          <li><p>If <code>path</code> and <code>dest</code> both represent <a href="#directoryConcept">directories</a> and are at the identical position on the <a>Directory Tree</a>, run the following substeps:</p>
+            <ol>
+              <li><p>If <code>dest</code> is not a <a><code>DestinationDict</code></a> with a <code>name</code> member that has a value different than the <a>name</a> of the <a href="#directoryConcept">directory</a> represented by <code>path</code>, then reject <var>p</var> with an <code>InvalidStateError</code>.</p>
+              <div class="note"><p>This is an <a href="#illegal">illegal transfer</a>; only a <a><code>DestinationDict</code></a> allows for a <a href="#renamingOperation">renaming operation</a>.</p></div>
+              </li>
+              <li><p>Otherwise:</p><ol><li><p>if <code>dest</code> is a <a><code>DestinationDict</code></a> with a <code>name</code> member that has a value different than the <a>name</a> of the <a href="#directoryConcept">directory</a> represented by <code>path</code>, conduct a <a href="#renamingOperation">renaming operation</a> on the <a href="#directoryConcept">directory</a> identified by <code>path</code></p></li><li><p>resolve <var>p</var> with <em>undefined</em>.</p></li></ol>
+              <div class="note"><p>This may have implications for <a><code>Directory</code></a> objects that exist with the old name of the underlying <a href="#directoryConcept">directory</a>.</p></div>
+              </li>
+            </ol>
+          </li>
+          <li><p>If <code>path</code> is a <a>child</a> of <code>dest</code> and <code>dest</code> has an <a>immediate child</a> which is a <a>parent</a> of <code>path</code> with the same <a>name</a> as the node identified by <code>path</code>, then reject <var>p</var> with an <a><code>InvalidStateError</code></a>.</p>
+          <div class="note"><p>This is an <a href="#illegal">illegal transfer</a>.</p></div>
+          </li>
+          <li><p>Otherwise:</p><ol><li><p><a href="#transfer">transfer</a> <code>path</code> to <code>dest</code>. If there were errors in the transfer, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a>.</p></li><li><p>Otherwise, resolve <var>p</var> with <em>undefined</em>.</p></li></ol></li>
+
+        </ol>
+        <li><p>Return <var>p</var>.</p></li>
+    </ol>
   </dd>
   <dt>Promise&lt;boolean> remove((DOMString or File or Directory) path)</dt>
   <dd>
-    <p>TBD</p>
+    <p>When the <code>remove(path)</code> method is called, the user agent must run the steps below:</p>
+    <div class="issue"><p>Is it better to take advantage of boolean semantics and ONLY resolve this promise with true or false (never reject) or to reject this promise, like other Directory operation promises get rejected? #bikeshed?</p></div>
+    <ol>
+      <li><p>Let <var>p</var> be a new promise.</p></li>
+      <li><p>Run the following steps asynchronously:</p>
+        <ol>
+          <li><p>If <code>path</code> is a <code>DOMString</code> <a href="#crawl-the-entire-path">crawl the entire path</a>. If it returns failure, resolve <var>p</var> with <code>false</code>.</p></li>
+          <li><p>If <code>path</code> is a <code>File</code> then run the following substeps:</p>
+            <ol>
+              <li>
+                <p><a href="#removeFromDirectoryTree">Remove from the Directory Tree</a> the node identified by the <code>path</code> argument.</p>
+                <div class="issue"><p>Error conditions could arise with removal. This should generate a fulfillment with <code>false</code>.</p></div>
+              </li>
+              <li><p>Resolve <var>p</var> with <code>true</code>.</p></li>
+            </ol>
+            <div class="issue"><p>This has implications for existing <code>File</code> object references. The "lock" problem needs to be solved.</p></div>
+          </li>
+          <li><p>If <code>path</code> represents a <a href="#directoryConcept">directory</a> run the following substeps:</p>
+            <ol>
+              <li><p>If <code>path</code> has one or more <a>child</a> nodes, resolve <var>p</var> with <code>false</code>.</p></li>
+              <li><p>Otherwise, run the following substeps:</p>
+              <ol>
+              <li>
+                <p><a href="#removeFromDirectoryTree">Remove from the Directory Tree</a> the node identified by the <code>path</code> argument.</p>
+                <div class="issue"><p>This has implications for existing <code>Directory</code> object references. The "lock" problem needs to be solved.</p>
+                  <p>Error conditions could arise with removal. This should generate a fulfillment with <code>false</code>.</p>
+                </div>
+              </li>
+              <li><p>Resolve <var>p</var> with <code>true</code>.</p></li>
+            </ol>
+           </li>
+         </ol>
+        </li>
+        </ol>
+      </li>
+      <li>Return <var>p</var>.</li>
+    </ol>
   </dd>
   <dt>Promise&lt;boolean> removeDeep((DOMString or File or Directory) path)</dt>
   <dd>
-    <p>TBD</p>
+    <p>When the <code>removeDeep(path)</code> method is called, the user agent must run the steps below:</p>
+    <div class="issue"><p>Is it better to take advantage of boolean semantics and ONLY resolve this promise with true or false (never reject) or to reject this promise, like other Directory operation promises get rejected? #bikeshed?</p></div>
+    <ol>
+      <li><p>Let <var>p</var> be a new promise.</p></li>
+      <li><p>Run the following steps asynchronously:</p>
+        <ol>
+          <li><p>If <code>path</code> is a <code>DOMString</code> <a href="#crawl-the-entire-path">crawl the entire path</a>. If it returns failure, resolve <var>p</var> with <code>false</code>.</p></li>
+          <li><p>If <code>path</code> is a <code>File</code> then run the following substeps:</p>
+            <ol>
+              <li>
+                <p><a href="#removeFromDirectoryTree">Remove from the Directory Tree</a> the node identified by the <code>path</code> argument.</p>
+              </li>
+              <li><p>Resolve <var>p</var> with <code>true</code>.</p></li>
+            </ol>
+            <div class="issue"><p>This has implications for existing <code>File</code> object references. The "lock" problem needs to be solved.</p></div>
+          </li>
+          <li><p>If <code>path</code> represents a <a href="#directoryConcept">directory</a> run the following substeps:</p>
+            <ol>
+              <li><p>If <code>path</code> has no <a>child</a> nodes, run the following substeps:</p>
+                <ol>
+                  <li><a href="#removeFromDirectoryTree">remove from the Directory Tree</a> the node identifed by the <code>path</code> argument.
+                    <div class="issue"><p>Error conditions could arise with removal. This should generate a fulfillment with <code>false</code>.</p></div>
+                  </li>
+                  <li>Resolve <var>p</var> with <code>true</code></li>
+                </ol>
+              </li>
+              <li><p>If <code>path</code> has one or more <a>child</a> nodes, run the following substeps:</p>
+              <ol>
+              <li>
+                <p>Recursively <a href="#removeFromDirectoryTree">remove from the Directory Tree</a> the node identified by the <code>path</code> argument, including all <a>child</a> nodes.</p>
+                <div class="issue"><p>This has implications for existing <code>Directory</code> object references, for both the <a>present working directory</a> and all <a>child</a> nodes. The "lock" problem needs to be solved.</p><p>Error conditions could arise with removal. This should generate a fulfillment with <code>false</code>.</p></div>
+              </li>
+              <li><p>Resolve <var>p</var> with <code>true</code>.</p></li>
+            </ol>
+           </li>
+         </ol>
+        </li>
+        </ol>
+      </li>
+      <li>Return <var>p</var>.</li>
+    </ol>
   </dd>
   <dt>Promise&lt;FileHandle> openRead((DOMString or File) path)</dt>
   <dd>
-    <p>TBD</p>
+    <p>When the <code>openRead(path)</code> method is called, the user agent must run the steps below:</p>
+  <ol>
+    <li>Let <var>p</var> be a new promise.</li>
+    <li><p>Run the following steps asynchronously:</p>
+      <ol>
+        <li><p>If <code>path</code> is a <code>DOMString</code>, run the following substeps:</p>
+          <ol>
+            <li><a href="#crawl-the-entire-path">Crawl the entire path.</a> If it returns failure, then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
+            <li>If <code>path</code> represents a <a href="#directoryConcept">directory</a> node and not a file node, reject <var>p</var> with an <code>InvalidStateError</code>.
+            </li>
+          <li><p>Otherwise, resolve <var>p</var> with a new <code>FileHandle</code> set to refer to the file at <code>path</code>.</p></li>  
+        </ol>
+        </li>
+        <li>Return <var>p</var>.</li>
+
+
+      </ol>
+
+  </ol>
   </dd>
   <dt>Promise&lt;FileHandleWritable> openWrite((DOMString or File) path,
         OpenWriteOptions options)</dt>
@@ -436,16 +641,44 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </dd>
   <dt>EventStream&lt;(File or Directory)> enumerate(optional DOMString path)</dt>
   <dd>
-    <p>TBD</p>
+    <div class="issue"><p>The <code>EventStream</code> object and semantics around it are not well-defined yet. This is a general platform problem.</p>
+      <p>The algorithm used might resemble:</p>
+      <ol>
+        <li>If no parameter is provided, enumerate the contents of the <a>present working directory</a>, by emitting a list of only its <a>immediate child</a> nodes.</li>
+        <li>If a parameter is provided, <a href="#crawl-the-entire-path">crawl the entire path</a> to validate it.</li>
+        <li>If the validation above does not return failure:
+          <ol>
+            <li>If the <a>Directory Pointer</a> points to a file, enumerate that file.</li>
+            <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, enumerate the contents of the directory, by emitting a list of only its <a>immediate child</a> nodes.</li>
+          </ol>
+        </li>
+      </ol>
+    </div>
   </dd>
-  <dt>EventStream&lt;File> enumerateDeep(optional DOMString path)</dt>
+  <dt>EventStream&lt;(File or Directory)> enumerateDeep(optional DOMString path)</dt>
   <dd>
-    <p>TBD</p>
+    <div class="issue"><p>The <code>EventStream</code> object and semantics around it are not well-defined yet. This is a general platform problem.</p>
+      <p>The algorithm used for <code>enumerateDeep</code> might resemble:</p>
+      <ol>
+        <li>If no parameter is provided, enumerate the contents of the <a>present working directory</a>. If it has <a>child</a> nodes, recursively enumerate the contents of each <a>child</a>.</li>
+        <li>If a parameter is provided, <a href="#crawl-the-entire-path">crawl the entire path</a> to validate it.</li>
+        <li>If the validation above does not return failure:
+          <ol>
+            <li>If the <a>Directory Pointer</a> points to a file, enumerate that file.</li>
+            <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, enumerate its contents. If it has <a>child</a> nodes, recursively enumerate the contents of each <a>child</a>.</li>
+          </ol>
+        </li>
+      </ol>
+    </div>
   </dd>
   
 </dl>
+</section>
   </section>
+  <section>
     <h2>The FileHandle interface</h2>
+    <section>
+      <h2>FileHandle WebIDL</h2>
   <dl title='interface FileHandle' class='idl'>
    <dt>readonly attribute FileOpenMode mode</dt>
    <dd>
@@ -463,20 +696,23 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   <dd>
     <p>TBD</p>
   </dd>
-  <dt>Promise&lt;ArrayBuffer> read(unsigned long long size) </dt>
+  <dt>CancelablePromise&lt;ArrayBuffer> read(unsigned long long size) </dt>
   <dd>
     <p>TBD</p>
   </dd>
-  <dt>void abort()</dt>
+  <dt>void cancel()</dt>
   <dd>
     <p>TBD</p>
   </dd>
     </dl>
   </section>
+</section>
 <section>
 <h2>The FileHandleWritable Interface</h2>
+<section>
+  <h2>FileHandleWritable WebIDL</h2>
  <dl title='interface FileHandleWritable : FileHandle' class='idl'>
-<dt>Promise&lt;void> write((DOMString or ArrayBuffer or
+<dt>CancelablePromise&lt;void> write((DOMString or ArrayBuffer or
 ArrayBufferView or Blob) value)</dt>
 <dd>
     <p>TBD</p>
@@ -485,23 +721,20 @@ ArrayBufferView or Blob) value)</dt>
  <dd>
     <p>TBD</p>
   </dd>
-  <dt>Promise&lt;void> flush()</dt>
-<dd>
-    <p>TBD</p>
-  </dd>
 </dl>  
+</section>
 </section>
 <section>
 <h2>FileSystem Configuration Parameters</h2>
 <dl title="dictionary CreateFileOptions" class="idl">
   <dt>CreateIfExistsMode ifExists = "fail"</dt>
    <dd>
-    <p>TBD</p>
+    <p>This enum value indicates whether to write over a pre-existing file or to fail the attempt to write over a pre-existing file.</p>
   </dd>
-  <dt>sequence&lt;(DOMString or Blob or ArrayBuffer or ArrayBufferView)&gt; data</dt>
+  <dt>(DOMString or Blob or ArrayBuffer or ArrayBufferView) data</dt>
     <dd><p></p></dd>
-  <dt>FilePropertyBag config</dt>
-    <dd><p></p></dd>
+  <dt>DOMString type = ""</dt>
+    <dd><p>The ASCII-encoded string in lower case representing the media type of the <code>File</code>, set to the empty string by default. Normative conditions for this dictionary parameter are found in the [[!FileAPI]] as part of the <a><code>Blob</code></a> interface definition and the <a>File Constructor Steps</a>; in particular, user agents must normalize this parameter.</p></dd>
 </dl>
 <dl title="dictionary OpenWriteOptions" class="idl">
  <dt>OpenIfNotExistsMode ifNotExists = "create"</dt>
@@ -513,20 +746,15 @@ ArrayBufferView or Blob) value)</dt>
     <p>TBD</p>
   </dd>
 </dl>
-<dl title="dictionary FilePropertyBag" class="idl">
-  <dt>DOMString type = ""</dt>
-  <dd></dd>
-  <dt>long long lastModified</dt>
-  <dd></dd>
-</dl>
+
 <dl title="enum CreateIfExistsMode" class="idl">
 <dt>replace</dt>
 <dd>
-    <p>TBD</p>
+    <p>This value, if set, replaces a <a><code>File</code></a> by removing it and writing a new <a><code>File</code></a> over it.</p>
   </dd>
 <dt>fail</dt>
 <dd>
-    <p>TBD</p>
+    <p>This is the default; by default, a file cannot be replaced.</p>
   </dd>  
 </dl>
 <dl title="enum OpenIfExistsMode" class="idl">
