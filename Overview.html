@@ -737,6 +737,10 @@ ArrayBufferView or Blob) value)</p>
  <dd>
     <p>TBD</p>
   </dd>
+  <dt>Promise&lt;void> flush()</dt>
+  <dd>
+    <div class="issue"><p>This method, in the vein of sync/fsync, raises performance implications and the potential for developer misuse. A proposal to move this to a dictionary on the overall write invocation may offer some benefits: developers can then coin an expensive promise. But this may not be specific enough. Another possibility is to allow Directory to return a <code>FileHandleWritable</code> which explicitly does a flush operation for writes, by adding this to the dictionary options for <code>Directory.openWrite()</code>.</p></div>
+  </dd>
 </dl>  
 </section>
 </section>
@@ -749,8 +753,6 @@ ArrayBufferView or Blob) value)</p>
   </dd>
   <dt>(DOMString or Blob or ArrayBuffer or ArrayBufferView) data</dt>
     <dd><p></p></dd>
-  <dt>DOMString type = ""</dt>
-    <dd><p>The ASCII-encoded string in lower case representing the media type of the <code>File</code>, set to the empty string by default. Normative conditions for this dictionary parameter are found in the [[!FileAPI]] as part of the <a><code>Blob</code></a> interface definition and the <a>File Constructor Steps</a>; in particular, user agents must normalize this parameter.</p></dd>
 </dl>
 <dl title="dictionary OpenWriteOptions" class="idl">
  <dt>OpenIfNotExistsMode ifNotExists = "create"</dt>
