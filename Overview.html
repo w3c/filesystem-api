@@ -395,7 +395,6 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </dd>
   <dt>Promise&lt;File> createFile(DOMString path, CreateFileOptions options)</dt>
   <dd>
-    <div class="issue"><p>The method definition below contains one or more known bugs as of 10/27/14.</p></div>
     <p>When the <code>createFile(path, options)</code> method is run, the user agents must run the steps below:</p>
     <ol>
       <li><p>Let <var>p</var> be a new promise.</p></li>
@@ -403,9 +402,12 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
         <ol>
           <li><p><a href="#strictly-split-a-string">Strictly split</a> the <code>path</code> argument on the U+002F SOLIDUS character. Let n be the total number of resulting <var>tokens</var>. </p></li>
           <li><p>If <a href="#crawl-the-path-until-node-n">crawling the path until node n-1</a> for the <code>path</code> argument returns failure, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
-          <div class="note"><p>This method creates <code>File</code> objects, and does not add <a href="#directoryConcept">directory</a> nodes to the <a>Directory Tree</a>. If the <a>path</a> cannot be crawled, this promise is rejected.</p></div>  
           </li>
-          <li><p>Otherwise, if the nth token in <var>tokens</var> strictly matches the name of a file at the next position of the <a>Directory Pointer</a>, run the following substeps:</p>
+          <li><p>If the nth token in <var>tokens</var> identifies a <a href="#directoryConcept">directory</a>, reject <var>p</var> with an 
+          <code>InvalidStateError</code>.</p>
+        <div class="note"><p>The <code>path</code> argument must identify a file.</p></div>
+        </li>
+          <li><p>Otherwise, if the nth token in <var>tokens</var> strictly matches the name of a pre-existing file at the next position of the <a>Directory Pointer</a>, run the following substeps:</p>
             <ol>
               <li><p>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "fail" then reject <var>p</var> with a <code>NoModificationAllowedError</code>.</p></li>
               <li><p>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "replace" then run the following substeps:</p>
@@ -414,8 +416,8 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
                     <ul>
                       <li><p>Treat the <code>data</code> member of the <code>options</code> dictionary as if it was a single element in the <code>fileBits</code> <code>sequence</code>, and follow the step for that type from the <a>File Constructor Steps</a>.</p></li>
                       <li><p>Replace the <code>fileName</code> parameter with the nth token in <var>tokens</var>, and normalize it according to the <a>File Constructor Steps</a>.</p></li>
-                      <li><p>If the <code>type</code> member of the <code>options</code> dictionary is provided, normalize it according to the <a>File Constructor Steps</a> for the <code>FilePropertyBag</code> dictionary's <code>type</code> member.</p></li>
                       <li><p>Set <code>f.lastModifiedDate</code> to the current date and time represented as the number of milliseconds since the <a>Unix Epoch</a> (which is the equivalent of <code>Date.now()</code> [[!ECMAScript]]).</p></li>
+                      <li><div class="issue"><p>This API gives no way to configure the <code>type</code> of a <code>File</code> since filesystems do not store the type of a file. But the File constructor steps allow developers to mint File object with a <code>type</code>.</p></div></li>
                     </ul>
 
                   </li>
@@ -427,14 +429,14 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
               </li>
             </ol>
           </li>
-          <li><p>If the nth token does not strictly match the name of a file at the next position of the <a>Directory Pointer</a> run the following substeps:</p>
+          <li><p>If the nth token does not strictly match the name of a pre-existing file at the next position of the <a>Directory Pointer</a> run the following substeps:</p>
                 <ol>
                   <li><p>Let <var>f</var> be a new <code>File</code> constructed according to the <a>File Constructor Steps</a> with the following modifications:</p>
                     <ul>
                       <li><p>Treat the <code>data</code> member of the <code>options</code> dictionary as if it was a single element in the <code>fileBits</code> <code>sequence</code>, and follow the step for that type from the <a>File Constructor Steps</a>.</p></li>
                       <li><p>Replace the <code>fileName</code> parameter with the nth token in <var>tokens</var>, and normalize it according to the <a>File Constructor Steps</a>.</p></li>
-                      <li><p>If the <code>type</code> member of the <code>options</code> dictionary is provided, normalize it according to the <a>File Constructor Steps</a> for the <code>FilePropertyBag</code> dictionary's <code>type</code> member.</p></li>
                       <li><p>Set <code>f.lastModifiedDate</code> to the current date and time represented as the number of milliseconds since the <a>Unix Epoch</a> (which is the equivalent of <code>Date.now()</code> [[!ECMAScript]).</p></li>
+                      <li><div class="issue"><p>This API gives no way to configure the <code>type</code> of a <code>File</code> since filesystems do not store the type of a file. But the File constructor steps allow developers to mint File object with a <code>type</code>.</p></div></li>
 
                     </ul>
                   </li>
@@ -450,7 +452,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
         </li>
         <li><p>Return <var>p</var></p></li>
       </ol>
-          
+
   </dd>
   <dt>Promise&lt;Directory> createDirectory(DOMString path)</dt>
   <dd>
@@ -661,17 +663,17 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
       </ol>
     </div>
   </dd>
-  <dt>EventStream&lt;(File or Directory)> enumerateDeep(optional DOMString path)</dt>
+  <dt>EventStream&lt;File> enumerateDeep(optional DOMString path)</dt>
   <dd>
     <div class="issue"><p>The <code>EventStream</code> object and semantics around it are not well-defined yet. This is a general platform problem.</p>
       <p>The algorithm used for <code>enumerateDeep</code> might resemble:</p>
       <ol>
-        <li>If no parameter is provided, enumerate the contents of the <a>present working directory</a>. If it has <a>child</a> nodes, recursively enumerate the contents of each <a>child</a>.</li>
+        <li>If no parameter is provided, enumerate the contents of the <a>present working directory</a>, enumerating ONLY File objects. If it has <a>child</a> nodes, recursively enumerate ONLY the File objects within <a>child</a>.</li>
         <li>If a parameter is provided, <a href="#crawl-the-entire-path">crawl the entire path</a> to validate it.</li>
         <li>If the validation above does not return failure:
           <ol>
             <li>If the <a>Directory Pointer</a> points to a file, enumerate that file.</li>
-            <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, enumerate its contents. If it has <a>child</a> nodes, recursively enumerate the contents of each <a>child</a>.</li>
+            <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, enumerate ONLY the File objects in that directory. If it has <a>child</a> nodes, recursively enumerate ONLY the File objects within each <a>child</a>.</li>
           </ol>
         </li>
       </ol>
