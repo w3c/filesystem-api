@@ -491,6 +491,11 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
     move((DOMString or File or Directory) path,
          (DOMString or Directory or DestinationDict) dest)</dt>
   <dd>
+    <div class="issue"><p>CancelablePromise&lt;void>
+    move((DOMString or File or Directory) path,
+         (DOMString or Directory or DestinationDict) dest)</p>
+         <p>Respec doesn't like CancelablePromise so munges the full WebIDL declaration which should be as above. Also, the "cancel" semantics of CancelablePromise need to be worked out.</p>
+       </div>
     <p>When the <code>move(path, dest)</code> method is called, the user agent must run the steps below:</p>
     <ol>
       <li><p>Let <var>p</var> be a new promise.</p></li>
@@ -698,6 +703,9 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </dd>
   <dt>CancelablePromise&lt;ArrayBuffer> read(unsigned long long size) </dt>
   <dd>
+    <div class="issue"><p>CancelablePromise&lt;ArrayBuffer> read(unsigned long long size)</p>
+      <p>Respec doesn't like CancelablePromise so munges the full WebIDL declaration which should be as above. Also, the "cancel" semantics of CancelablePromise need to be worked out.</p>
+    </div>
     <p>TBD</p>
   </dd>
   <dt>void cancel()</dt>
@@ -715,6 +723,11 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
 <dt>CancelablePromise&lt;void> write((DOMString or ArrayBuffer or
 ArrayBufferView or Blob) value)</dt>
 <dd>
+  <div class="issue"><p>CancelablePromise&lt;void> write((DOMString or ArrayBuffer or
+ArrayBufferView or Blob) value)</p>
+<p>CancelablePromise&lt;void> write((DOMString or ArrayBuffer or
+ArrayBufferView or Blob) value)</p>  
+</div>
     <p>TBD</p>
   </dd>
  <dt>Promise&lt;void> setSize(optional unsigned long long size)</dt>
