@@ -136,16 +136,15 @@
             ID3/EXIF tags, for example).</li>
             <li>The ability to organize project files by creating directories
             would be useful.</li>
-            <li><p>Edited files should be accessable by other client-side applications.</p>
-              <div class="issue"><p>This requirement may need to be abandoned. It raises technical problems like cross-application locking, which may need to be addressed before listing this as a viable use case.</p></div>
-            </li></ul>
+            
+            </ul>
           </li>
 
           <li>Offline video viewer
             <ul>
             <li>It downloads large files (&gt;1GB) for later viewing.</li>
-            <li><p>It needs efficient seek + streaming.</p>
-              <div class="issue"><p>Actual video streaming is being worked on through separate technology; however, the ability to write to a sandboxed filesystem for later retrieval is covered by this specification.</p></div></li>
+            <li>It needs efficient seek + streaming.
+             </li>
             <li>It must be able to hand a URL to the video tag.</li>
             <li>It should enable access to partly-downloaded files e.g.  to let
             you watch the first episode of the DVD even if your download didn't
@@ -297,7 +296,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   <li>Otherwise, for each token in <var>tokens</var> up to the nth token, if the next position of the <a>Directory Pointer</a> strictly matches the <a>name</a> of a <a href="#directoryConcept">directory</a>, advance the <a>Directory Pointer</a> to that <a href="#directoryConcept">directory</a>. If it does not strictly match, return failure.</p></li>
 
 </ol>
-<div class="note"><p>Other more optimal ways exist of verifying a <a>path</a> in the <a>Directory Tree</a>. These algorithms are provided for specification purposes only.</p></div>
+
 </section>
     
 </section>
@@ -325,8 +324,8 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   <dl title='partial interface URL' class='idl'>
   <dt>static DOMString? getFileSystemURL(File file)</dt>
   <dd>
-    <p>This method must return a URL containing the <a>path from root</a> to the File object argument.</p>
-    <div class="issue"><p>TODO: specify this.</p></div>
+    <p>This method must return a <a>FileSystem URL</a> according to the <a>URL generation steps</a> for the <a><code>File</code></a> argument.</p>
+    
   </dd>
   </dl>
 </section>
@@ -338,6 +337,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
       <h2>Origin of a Directory</h2>
       <p>The <a>origin</a> of a <a><code>Directory</code></a> is the same as the <a>origin</a> of the <a><code>document</code></a> or <a><code>worker</code></a>. Each <a>origin</a> has one <a><code>root</code></a> <a><code>Directory</code></a>.</p>
       <div class="note"><p>The <a>origin</a> of the <a>root</a> <a><code>Directory</code></a> is not affected by changes to <code>document.domain</code>.</p></div>
+      <div class="issue"><p>Origin may be redefined in terms of Realm, particularly since root is returned from </p></div>
     </section>
     <section id="DirectoryPromise">
      <h2>Resolving or Rejecting a Directory-Creating Promise</h2> 
@@ -494,11 +494,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
     move((DOMString or File or Directory) path,
          (DOMString or Directory or DestinationDict) dest)</dt>
   <dd>
-    <div class="issue"><p>CancelablePromise&lt;void>
-    move((DOMString or File or Directory) path,
-         (DOMString or Directory or DestinationDict) dest)</p>
-         <p>Respec doesn't like CancelablePromise so munges the full WebIDL declaration which should be as above. Also, the "cancel" semantics of CancelablePromise need to be worked out.</p>
-       </div>
+    
     <p>When the <code>move(path, dest)</code> method is called, the user agent must run the steps below:</p>
     <ol>
       <li><p>Let <var>p</var> be a new promise.</p></li>
@@ -647,37 +643,62 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
         <dd>
     <p>TBD</p>
   </dd>
-  <dt>EventStream&lt;(File or Directory)> enumerate(optional DOMString path)</dt>
+  <dt>Observable&lt;(File or Directory)> enumerate(optional DOMString path)</dt>
   <dd>
-    <div class="issue"><p>The <code>EventStream</code> object and semantics around it are not well-defined yet. This is a general platform problem.</p>
-      <p>The algorithm used might resemble:</p>
-      <ol>
-        <li>If no parameter is provided, enumerate the contents of the <a>present working directory</a>, by emitting a list of only its <a>immediate child</a> nodes.</li>
-        <li>If a parameter is provided, <a href="#crawl-the-entire-path">crawl the entire path</a> to validate it.</li>
-        <li>If the validation above does not return failure:
+    <div class="issue"><p>The <code>Observable</code> async generator and semantics around it are not well-defined yet. This is a general platform problem; <code>Observable</code> currently is a proposal within TC-39, and this should be considered "placeholder" semantics till the proposal becomes a language formalism.</p>
+    </div>
+    <p>When the <code>enumerate(path)</code> method is called, the user agent must run the steps below:</p>
+     <ol>
+        <li>If no parameter is provided, set the <a>Directory Pointer</a> to the <a>present working directory</a>. For each <a>immediate child</a>, emit a corresponding object (<a><code>File</code></a> or <a><code>Directory</code></a>) until done; when done, invoke this <code>Observable</code>'s final state.</p>
+        <div class="note"><p>If there are no <a>immediate child</a> nodes, this becomes the empty <code>Observable</code>.</p></div>  
+        </li>
+        <li>If a parameter is provided, and <a href="#crawl-the-entire-path">crawling the entire path</a> returns failure, invoke the <code>Observable</code>'s rejection path with an <code>InvalidStateError</code>.</li>
+        <li>If <a href="#crawl-the-entire-path">crawling the entire path</a> does not return failure, run the substeps below:
           <ol>
-            <li>If the <a>Directory Pointer</a> points to a file, enumerate that file.</li>
-            <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, enumerate the contents of the directory, by emitting a list of only its <a>immediate child</a> nodes.</li>
+            <li>If the <a>Directory Pointer</a> points to a file, emit a <a><code>File</code></a> corresponding to the file; when done, invoke this <code>Observable</code>'s final state.</li>
+            <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, for each <a>immediate child</a>, emit a corresponding object (<a><code>File</code></a> or <a><code>Directory</code></a>) until done; when done, invoke this <code>Observable</code>'s final state.</li>
           </ol>
         </li>
       </ol>
-    </div>
   </dd>
-  <dt>EventStream&lt;File> enumerateDeep(optional DOMString path)</dt>
+  <dt>Observable&lt;(File)> enumerateDeep(optional DOMString path)</dt>
   <dd>
-    <div class="issue"><p>The <code>EventStream</code> object and semantics around it are not well-defined yet. This is a general platform problem.</p>
-      <p>The algorithm used for <code>enumerateDeep</code> might resemble:</p>
+    <div class="issue"><p>The <code>Observable</code> async generator and semantics around it are not well-defined yet. This is a general platform problem; <code>Observable</code> currently is a proposal within TC-39, and this should be considered "placeholder" semantics till the proposal becomes a language formalism.</p>
+    </div>
+      <p>When the <code>enumerateDeep(path)</code> method is called, the user agent must run the steps below:</p>
       <ol>
-        <li>If no parameter is provided, enumerate the contents of the <a>present working directory</a>, enumerating ONLY File objects. If it has <a>child</a> nodes, recursively enumerate ONLY the File objects within <a>child</a>.</li>
-        <li>If a parameter is provided, <a href="#crawl-the-entire-path">crawl the entire path</a> to validate it.</li>
-        <li>If the validation above does not return failure:
+        <li>If no parameter is provided, set the <a>Directory Pointer</a> to the <a>present working directory</a> and run the following substeps:
+         <ol>
+         <li><p>If there are <a>immediate child</a> nodes and they are files, emit a corresponding <a><code>File</code></a> object.</p>
+          <div class="note"><p>If there are no <a>immediate child</a> nodes, this becomes the empty <code>Observable</code>.</p></div>
+         </li> 
+         <li><p>If any <a>immediate child</a> is a <a href="#directoryConcept">directory</a>, run the following substeps for all <a>child</a> nodes of that <a href="#directoryConcept">directory</a>:
+          <ol><li>Set the <a>Directory Pointer</a> to the <a href="#directoryConcept">directory</a> and emit a corresponding <a><code>File</code></a> object for any <a>immediate child</a> nodes that are files.</p></li>
+            <li>If any <a>immediate child</a> nodes are <a href="#directoryConcept">directories</a>, run the step above on them.</li>
+          
+        </ol>
+      </li>
+      <li><p>When done, invoke this <code>Observable</code>'s final state.</p></li>
+    </ol>
+  </li>
+        <li><p>If a parameter is provided, and <a href="#crawl-the-entire-path">crawling the entire path</a> returns failure, invoke the <code>Observable</code>'s rejection path with an <code>InvalidStateError</code>.</p></li>
+        <li><p>If <a href="#crawl-the-entire-path">crawling the entire path</a> above does not return failure, run the substeps below:</p>
           <ol>
-            <li>If the <a>Directory Pointer</a> points to a file, enumerate that file.</li>
-            <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, enumerate ONLY the File objects in that directory. If it has <a>child</a> nodes, recursively enumerate ONLY the File objects within each <a>child</a>.</li>
+            <li><p>If the <a>Directory Pointer</a> points to a file, emit a <a><code>File</code></a> corresponding to the file; when done, invoke this <code>Observable</code>'s final state.</p></li>
+            <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, run the following substeps:
+          <ol>
+          <li><p>If there are <a>immediate child</a> nodes and they are files, emit a corresponding <a><code>File</code></a> object.</p>
+          <div class="note"><p>If there are no <a>immediate child</a> nodes, this becomes the empty <code>Observable</code>.</p></div>
+         </li> 
+         <li><p>If any <a>immediate child</a> is a <a href="#directoryConcept">directory</a>, run the following substeps for all <a>child</a> nodes of that <a href="#directoryConcept">directory</a>:
+          <ol><li>Set the <a>Directory Pointer</a> to the <a href="#directoryConcept">directory</a> and emit a corresponding <a><code>File</code></a> object for any <a>immediate child</a> nodes that are files.</p></li>
+            <li>If any <a>immediate child</a> nodes are <a href="#directoryConcept">directories</a>, run the step above on them.</li></ol>
+            
+      </li>
+      <li><p>When done, invoke this <code>Observable</code>'s final state.</p></li>
           </ol>
         </li>
       </ol>
-    </div>
   </dd>
   
 </dl>
@@ -706,9 +727,6 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </dd>
   <dt>CancelablePromise&lt;ArrayBuffer> read(unsigned long long size) </dt>
   <dd>
-    <div class="issue"><p>CancelablePromise&lt;ArrayBuffer> read(unsigned long long size)</p>
-      <p>Respec doesn't like CancelablePromise so munges the full WebIDL declaration which should be as above. Also, the "cancel" semantics of CancelablePromise need to be worked out.</p>
-    </div>
     <p>TBD</p>
   </dd>
   <dt>void cancel()</dt>
@@ -728,8 +746,7 @@ ArrayBufferView or Blob) value)</dt>
 <dd>
   <div class="issue"><p>CancelablePromise&lt;void> write((DOMString or ArrayBuffer or
 ArrayBufferView or Blob) value)</p>
-<p>CancelablePromise&lt;void> write((DOMString or ArrayBuffer or
-ArrayBufferView or Blob) value)</p>  
+ 
 </div>
     <p>TBD</p>
   </dd>
@@ -817,6 +834,10 @@ ArrayBufferView or Blob) value)</p>
     <p>TBD</p>
   </dd>
 </dl>
+</section>
+<section>
+<h2>FileSystem URLs</h2>
+<p></p>
 </section>
 <section>
   <h2>Acknowledgements</h2>
