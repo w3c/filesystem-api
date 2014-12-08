@@ -332,12 +332,12 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </section>
   <section id="Directory">
     <h2>The Directory Interface</h2>
-    <p><a><code>Directory</code></a> objects represent a <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>, and allow for API operations on that <a href="#directoryConcept">directory</a> or the <a>Directory Tree</a> itself, which may affect other <a href="#directoryConcept">directories</a>. The <a>root</a> <a><code>Directory</code></a> object represents the <a>root</a> <a href="#directoryConcept">directory</a>.</p>
+    <p><a><code>Directory</code></a> objects represent a <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>, and allow for API operations on that <a href="#directoryConcept">directory</a> or on other parts of the <a>Directory Tree</a>, which may affect other <a href="#directoryConcept">directories</a>. The <a>root</a> <a><code>Directory</code></a> object represents the <a>root</a> <a href="#directoryConcept">directory</a>. Each <a><code>Directory</code></a> object must refer to the <a>present working directory</a>, unless any method called on that <a><code>Directory</code></a> uses a <a>path</a> argument that refers to another <a href="#directoryConcept">directory</a> or file. </p>
     <section id="DirectoryOrigin">
       <h2>Origin of a Directory</h2>
       <p>The <a>origin</a> of a <a><code>Directory</code></a> is the same as the <a>origin</a> of the <a><code>document</code></a> or <a><code>worker</code></a>. Each <a>origin</a> has one <a><code>root</code></a> <a><code>Directory</code></a>.</p>
       <div class="note"><p>The <a>origin</a> of the <a>root</a> <a><code>Directory</code></a> is not affected by changes to <code>document.domain</code>.</p></div>
-      <div class="issue"><p>Origin may be redefined in terms of Realm, particularly since root is returned from </p></div>
+      <div class="issue"><p>Origin may be redefined in terms of Script Realm; open bugs include <a href="https://www.w3.org/Bugs/Public/show_bug.cgi?id=27203">27203</a>, <a href="https://www.w3.org/Bugs/Public/show_bug.cgi?id=27204">27204</a>, and <a href="https://www.w3.org/Bugs/Public/show_bug.cgi?id=26603">26603</a>.</p></div>
     </section>
     <section id="DirectoryPromise">
      <h2>Resolving or Rejecting a Directory-Creating Promise</h2> 
@@ -497,7 +497,9 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
     
     <p>When the <code>move(path, dest)</code> method is called, the user agent must run the steps below:</p>
     <ol>
-      <li><p>Let <var>p</var> be a new promise.</p></li>
+      <li><p>Let <var>p</var> be a new CancelablePromise.</p>
+      <div class="issue"><p>The web does not have a <code>CancelablePromise</code> type yet.</p></div>  
+      </li>
       <li><p>Run the following steps asynchronously:</p>
         <ol>
           <li><p>If <code>path</code> is a <code>DOMString</code>, then <a href="#crawl-the-entire-path">crawl the entire path</a> represented by <code>path</code>. If it returns failure, then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
@@ -526,7 +528,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
           <li><p>If <code>path</code> is a <a>child</a> of <code>dest</code> and <code>dest</code> has an <a>immediate child</a> which is a <a>parent</a> of <code>path</code> with the same <a>name</a> as the node identified by <code>path</code>, then reject <var>p</var> with an <a><code>InvalidStateError</code></a>.</p>
           <div class="note"><p>This is an <a href="#illegal">illegal transfer</a>.</p></div>
           </li>
-          <li><p>Otherwise:</p><ol><li><p><a href="#transfer">transfer</a> <code>path</code> to <code>dest</code>. If there were errors in the transfer, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a>.</p></li><li><p>Otherwise, resolve <var>p</var> with <em>undefined</em>.</p></li></ol></li>
+          <li><p>Otherwise:</p><ol><li><p><a href="#transfer">transfer</a> <code>path</code> to <code>dest</code>. If there were errors in the transfer, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a>.</p></li><li><p>If there were no errors, resolve <var>p</var> with <em>undefined</em>.</p></li></ol></li>
 
         </ol>
         <li><p>Return <var>p</var>.</p></li>
@@ -640,8 +642,69 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </dd>
   <dt>Promise&lt;FileHandleWritable> openWrite((DOMString or File) path,
         OpenWriteOptions options)</dt>
-        <dd>
-    <p>TBD</p>
+    <dd>
+    <p>When the <code>openWrite(path, options)</code> method is called, the user agent must run the steps below:</p>
+    <ol>
+      <li>Let <var>p</var> be a new promise, and <var>filename</var> a string, initially empty.</li>
+      <li><p>Run the following steps asynchronously:</p>
+      <ol>
+      <li><p>If the <code>path</code> argument is a DOMString, then run the substeps below:</p>
+        <ol>
+          <li><p><a href="#strictly-split-a-string">Strictly split</a> the <code>path</code> argument on the U+002F SOLIDUS character. Let <var>n</var> be the total number of resulting <var>tokens</var>. </p></li>
+          <li><p>If <a href="#crawl-the-path-until-node-n">crawling the path until node n-1</a> for the <code>path</code> argument returns failure, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
+          </li>
+          <li><p>If the node identified by the token at <var>n</var> is a <a href="#directoryConcept">directory</a>, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
+          <div class="note"><p>If a DOMString is used for <code>path</code>, it must point to a file in the <a>Directory Tree</a>, or be a the name of a potential new file.</p></div>
+          </li> 
+          <li>Otherwise, set <var>filename</var> to the <var>n</var>th token.</li>
+         
+        </ol>
+      </li>
+       <li><p>If <code>path</code> is a <a><code>File</code></a> then set <var>filename</var> to <code>path.name</code>.</p></li> 
+       <li><p>If <code>path</code> is a <a><code>File</code></a> and <var>filename</var> corresponds to an existing file's name in the <a>present working directory</a> OR path is a DOMString and <var>filename</var> corresponds to a file's name in the <a href="#directoryConcept">directory</a> identified by the <var>n-1</var>th token, then run the following substeps: </p>
+      <div class="note"><p>If path is a <a><code>File</code></a>, then this method applies to the <a>present working directory</a>; if <a>path</a> is a DOMString, then this method applies to the <a href="#directoryConcept">directory</a> identified by <a>path</a>'s <var>n-1</var>th token.</p></div>
+      <ol>
+        <li><p>If the optional <a><code>OpenWriteOptions</code></a> dictionary argument is used, and the <a><code>OpenIfExistsMode</code></a> <a><code>ifExists</code></a> member is "fail" then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
+        <li><p>Otherwise, if the <a><code>OpenIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member is "open" then run the substeps below:</p>
+        <div class="note"><p>This enum value is set to "open" by default.</p></div>
+          <ol>
+            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>true</code>, resolve <var>p</var> with a <a>flushing</a> <a><code>FileHandleWritable</code></a> object set to the file corresponding to <code>path</code>. </p>  
+            </li>
+            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>false</code>, resolve <var>p</var> with a <a>non-flushing</a> <a><code>FileHandleWritable</code></a> object set to the file corresponding to <code>path</code>. </p>
+            <div class="note"><p>This value is set to <code>false</code> by default.</p></div>  
+            </li>
+
+          </ol>
+        </li>
+        <li><p>Otherwise, if <code>path</code> is a <a><code>File</code></a> and <var>filename</var> does NOT correspond to an existing file's name in the <a>present working directory</a> OR <code>path</code> is a DOMString and <var>filename</var> does NOT correspond to a file's name in the <a href="#directoryConcept">directory</a> identified by the <var>n-1</var>th token, then run the following substeps: </p>
+        <ol>
+          <li><p>If the optional <a><code>OpenWriteOptions</code></a> dictionary argument is used, and the <a><code>OpenIfNotExistsMode</code></a> <a><code>ifNotExists</code></a> member is "fail" then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
+          <li><p>Otherwise, if the <a><code>OpenIfNotExistsMode</code></a> <a><code>ifNotExists</code></a> dictionary member is "create" then run the substeps below: 
+          </p>
+          <div class="note"><p>This enum value is set to "create" by default.</p></div>
+             <ol>
+            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>true</code>, resolve <var>p</var> with a <a>flushing</a> <a><code>FileHandleWritable</code></a> object set to the file corresponding to <code>path</code>. </p>  
+            </li>
+            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>false</code>, resolve <var>p</var> with a <a>non-flushing</a> <a><code>FileHandleWritable</code></a> object set to the file corresponding to <code>path</code>. </p>
+            <div class="note"><p>This value is set to <code>false</code> by default.</p></div>  
+            </li>
+
+          </ol>
+
+          </li>
+
+        </ol>
+
+        </li>
+      </ol>
+
+       </li>
+        </ol>
+
+      </li>
+    </li>
+    <li>Return <var>p</var></li>
+    </ol>
   </dd>
   <dt>Observable&lt;(File or Directory)> enumerate(optional DOMString path)</dt>
   <dd>
@@ -744,19 +807,12 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
 <dt>CancelablePromise&lt;void> write((DOMString or ArrayBuffer or
 ArrayBufferView or Blob) value)</dt>
 <dd>
-  <div class="issue"><p>CancelablePromise&lt;void> write((DOMString or ArrayBuffer or
-ArrayBufferView or Blob) value)</p>
- 
-</div>
+  
     <p>TBD</p>
   </dd>
  <dt>Promise&lt;void> setSize(optional unsigned long long size)</dt>
  <dd>
     <p>TBD</p>
-  </dd>
-  <dt>Promise&lt;void> flush()</dt>
-  <dd>
-    <div class="issue"><p>This method, in the vein of sync/fsync, raises performance implications and the potential for developer misuse. A proposal to move this to a dictionary on the overall write invocation may offer some benefits: developers can then coin an expensive promise. But this may not be specific enough. Another possibility is to allow Directory to return a <code>FileHandleWritable</code> which explicitly does a flush operation for writes, by adding this to the dictionary options for <code>Directory.openWrite()</code>.</p></div>
   </dd>
 </dl>  
 </section>
@@ -777,6 +833,10 @@ ArrayBufferView or Blob) value)</p>
     <p>TBD</p>
   </dd>
   <dt>OpenIfExistsMode ifExists = "open"</dt>
+  <dd>
+    <p>TBD</p>
+  </dd>
+  <dt>boolean Flush = false</dt>
   <dd>
     <p>TBD</p>
   </dd>
