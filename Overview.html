@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html>
   <head>
     <title>FileSystem API</title>
@@ -90,7 +90,7 @@
   </head>
   <body>
     <section id='abstract'>
-      <p>The FileSystem API defines functionality on a local sandboxed file system within the same origin of the Web Application that created it. It exposes standard file system operations to Web Applications, such as creation of files and directories, and reading, writing, and copying files and directories.  It builds on top of the [[!FileAPI]] and uses Promises for asynchronous functionality [[!ECMAScript]].</p>
+      <p>The FileSystem API defines functionality on a local sandboxed file system within the same <a>origin</a> of the Web Application that created it. It exposes standard file system operations to Web Applications, such as creation of files and directories, and reading and writing of them (from and to disk), including other programmatic manipulation of files and directories.  </p>
     </section>
     <section id="sotd">
       Portions of this specification are in flux, and are likely to be re-written; where appropriate, these have been marked as ISSUES by the editor. Implementors are encouraged to contribute to discussions on the <a href="http://lists.w3.org/Archives/Public/public-webapps/">public-webapps@w3.org</a> mailing list. This work uses the "<a href="http://dev.w3.org/2009/dap/file-system/file-dir-sys.html">File API: Directories and System</a>" W3C Note as a starting point.
@@ -202,7 +202,7 @@
               <a>conforming user agent</a>
               if it satisfies all of the MUST-,
               REQUIRED- and SHALL-level
-              criteria in this specification that apply to implementations.  This specification uses both the terms "conforming user agent" and "user agent" to refer to this product class.
+              criteria in this specification that apply to implementations.  This specification uses the terms "conforming user agent", "user agent" and "implementation" to refer to this product class.
             </p>
       <p>User agents may implement algorithms in this specifications in any way desired, so long as the end result is indistinguishable from the result that would be obtained
       from the specification's algorithms.</p>
@@ -214,62 +214,63 @@
   </section>
   <section id="terminology">
     <h2>Terminology</h2>
-    <p>The terms <dfn id="Blob">Blob</dfn>, <dfn id="File">File</dfn>, <dfn>Unix Epoch</dfn>, and <dfn>File Constructor Steps</dfn> are as defined by the [[!FileAPI]] specification.</p>
+    <p>The terms <dfn id="Blob">Blob</dfn>, <dfn id="File">File</dfn>, <dfn>Unix Epoch</dfn>, <dfn>File Constructor Steps</dfn>, <dfn id="readOperation">read operation</dfn>, <dfn id="terminationReason">termination reason</dfn>, and <dfn id="bodyFileAPI">body</dfn> are as defined by the [[!FileAPI]] specification.</p>
     <p>The terms <dfn id="scheme">scheme</dfn>, <dfn id="scheme-data">scheme data</dfn>, and <dfn id="URL">URL</dfn> are as defined by the [[!URL]] specification.</p>
     <p>The term <dfn id="origin">origin</dfn> is used as defined by the Web Origin Specification [[!ORIGIN]].</p>
     <p>The term <dfn id="worker"><code>worker</code></dfn> is defined by the WebWorkers specification [[!WEBWORKERS]].</p>
     <p>The terms <dfn>context object</dfn>, <dfn id="strictly-split-a-string">strictly split a string</dfn>, and <dfn id="document"><code>document</code></dfn> are defined by the HTML specification [[!HTML]].</p>
+    <p>Algorithmic steps in this specification <dfn>terminate</dfn> when a promise is either rejected or fulfilled, or when the steps are explicitly terminated outside of promise fulfilment or rejection.</p>
 
 </section>
 <section>
   <h2>Model</h2>
   <section>
     <h3>Directory, File, Root, and Path</h3>
-  <p>A <dfn id="directoryConcept">directory</dfn> is a logical organizing storage unit with a distinct <dfn>name</dfn> which contains files and/or one or more <dfn id="subdirectoryConcept">subdirectory</dfn> units (which are themselves <a href="#directoryConcept">directory</a> units). The <a href="#directoryConcept">directory</a> is organized by a hierarchical containment structure, which can also be represented by a string, called a <dfn>path</dfn>; the <a>path</a> string uses the U+002F SOLIDUS character ("/") to denote directories within the <a>Directory Tree</a>. A file in this specification is as defined in the [[!FileAPI]], and is represented by a <code>File</code> object. Files, like directories, have distinct <a>name</a>s which identify them on the <a>Directory Tree</a>.</p>
-    <p> The top-most containing <a href="#directoryConcept">directory</a>, which contains all <a href="#directoryConcept">directories</a> and files, if any exist, is called the <dfn>root</dfn> <a href="#directoryConcept">directory</a>, and has the following properties:</p> 
+  <p>A <dfn id="directoryConcept">directory</dfn> is a logical organizing storage unit with a distinct <dfn>name</dfn> which contains <a href="#fileConcept">files</a> and/or one or more <dfn id="subdirectoryConcept">subdirectory</dfn> units (which are themselves <a href="#directoryConcept">directory</a> units). The <a href="#directoryConcept">directory</a> is organized by a hierarchical containment structure, which can also be represented by a string, called a <dfn>path</dfn>; the <a>path</a> string uses the U+002F SOLIDUS character ("/") to denote directories within the <a>Directory Tree</a>. A <dfn id="fileConcept">file</dfn> is <em>durable binary data</em> that can persist through storage, and can be programmatically manipulated as defined in the [[!FileAPI]]; this specification introduces two new primitives for handling <a href="#fileConcept">file</a>s, namely the <a><code>FileHandle</code></a> and the <a><code>FileHandleWritable</code></a>. <a href="#fileConcept">Files</a>, like <a href="#directoryConcept">directories</a>, have distinct <a>name</a>s which identify them on the <a>Directory Tree</a>.</p>
+    <p> The top-most containing <a href="#directoryConcept">directory</a>, which contains all <a href="#directoryConcept">directories</a> and <a href="#fileConcept">files</a>, if any exist, is called the <dfn>root</dfn> <a href="#directoryConcept">directory</a>, and has the following properties:</p> 
     <ul>
-      <li>It is not contained by any other <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>; it contains all others.</li>
-      <li>It is represented by a <a>path</a> that is equal to the string "/" (a single U+002F SOLIDUS character).</li>
+      <li><p>It is not contained by any other <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>; it contains all others.</p></li>
+      <li><p>It is represented by a <a>path</a> that is equal to the string "/" (a single U+002F SOLIDUS character).</p></li>
       <li><p>It has the name "root" (that is, the Unicode characters U+0072, U+006F, U+006F, U=0074).</p>
-      <div class="issue"><p>"root" is not intended to be a reserved word. Other subdirectories can be created that are called "root."</p></div>
+      <div class="note"><p>"root" is not intended to be a reserved word. Other subdirectories can be created that are called "root."</p></div>
       </li>
     </ul>
     <p>Each <a>origin</a> has one <a>root</a> <a href="#directoryConcept">directory</a>.</p>
   </section>
   <section>
     <h3>The Directory Tree</h3>
-     <p>User agents must maintain an internal per-<a>origin</a> <dfn>Directory Tree</dfn> of <a href="#directoryConcept">directories</a> and files, along with the affiliated <a>path from root</a> for each <a href="#directoryConcept">directory</a> and file; each <a href="#directoryConcept">directory</a> or file must correspond to a node in the <a>Directory Tree</a>, with the <a>root</a> <a href="#directoryConcept">directory</a> being the <em>root</em> of the <a>Directory Tree</a>. </p>
-     <div class="note"><p>The corollary to this is that for each file or <a href="#directoryConcept">directory</a>, user agents are required to maintain the position of that file or <a href="#directoryConcept">directory</a> on the <a>Directory Tree</a>.</p></div> 
+     <p>User agents must maintain an internal per-<a>origin</a> <dfn>Directory Tree</dfn> of <a href="#directoryConcept">directories</a> and <a href="#fileConcept">file</a>s that have been <em>written to disk</em>, along with the affiliated <a>path from root</a> for each <a href="#directoryConcept">directory</a> and <a href="#fileConcept">file</a> that has been written to disk; each such <a href="#directoryConcept">directory</a> or <a href="#fileConcept">file</a> must correspond to a node in the <a>Directory Tree</a>, with the <a>root</a> <a href="#directoryConcept">directory</a> being the <em>root</em> of the <a>Directory Tree</a>. </p>
+     <div class="note"><p>The corollary to this is that for each <a href="#fileConcept">file</a> or <a href="#directoryConcept">directory</a> that has been written to disk, user agents are required to maintain the position of that <a href="#fileConcept">file</a> or <a href="#directoryConcept">directory</a> on the <a>Directory Tree</a>.</p></div> 
      <p>A <dfn>Directory Pointer</dfn> is a pointer to a position in the <a>Directory Tree</a>; unless specified otherwise, it initally points to the <a>root</a> of the <a>Directory Tree</a>.</p>
     <p>The <dfn>present working directory</dfn> is the node on the <a>Directory Tree</a> that represents the current <a href="#directoryConcept">directory</a> from which an operation is taking place. In this specification, this is the <a>context object</a> from which a <a><code>Directory</code></a> operation is called. </p>
     <p>A <a>path</a> to a given <a href="#directoryConcept">directory</a> from the <a>root</a> <a href="#directoryConcept">directory</a> is said to be a <dfn>path from root</dfn> and always begins with a leading U+002F SOLIDUS ("/"). A <a>path</a> that is relative only from the <a>present working directory</a> is said to be a <dfn>relative path</dfn>, and does not begin with a U+002F SOLIDUS ("/").</p>
-    <div class="note"><p>The <a>present working directory</a> may also be the <a>root</a> <a>Directory</a>, in which case the <a>path</a> does not need to begin with a leading U+002F SOLIDUS ("/"). If the <a>present working Directory</a> is the <a>root</a> <a href="#directoryConcept">directory</a>, then all <a>path</a>s to other directories or files can be represented by <a>relative path</a>s. </div>
+    <div class="note"><p>The <a>present working directory</a> may also be the <a>root</a> <a>Directory</a>, in which case the <a>path</a> does not need to begin with a leading U+002F SOLIDUS ("/"). If the <a>present working Directory</a> is the <a>root</a> <a href="#directoryConcept">directory</a>, then all <a>path</a>s to other directories or <a href="#fileConcept">file</a>s can be represented by <a>relative path</a>s. </div>
       <pre class="example highlight">
 var path = "/music/genres/jazz"; // path from root to jazz Directory
 
 // set genres directory to the present working Directory:
 
 var pathToJazz = "jazz"; // relative path from within genres to jazz Directory </pre>
-<div class="issue"><p>Should additional definition be added to allow for "../.../myDir/yourDir" style path navigation under relative paths? Currently, we only allow <em>forward</em> path navigation; allowing "../../" will allow <em>backward</em> path navigation.</p></div>
-<p>A <dfn>child</dfn> is a node on the <a>Directory Tree</a> with a position that is below a given position on the <a>Directory Tree</a> for a given <a href="#directoryConcept">directory</a>; a <a href="#subdirectoryConcept">subdirectory</a> of the <a>present working directory</a> is a <a>child</a> of the <a>present working directory</a>; a <a href="#subdirectoryConcept">subdirectory</a> of <em>that</em> <a href="#subdirectoryConcept">subdirectory</a> is also a <a>child</a> of the <a>present working directory</a>. An <dfn>immediate child</dfn> corresponds to a node on the <a>Directory Tree</a> that is either a <a href="#subdirectoryConcept">subdirectory</a> that is the next position on the <a>path</a>, or a file that is next on the <a>path</a>. A <dfn>parent</dfn> is a <a href="#directoryConcept">directory</a> that contains a file or another <a href="#directoryConcept">directory</a>; in particular, the <a href="#directoryConcept">directory</a> that contains the <a>present working directory</a> is its <a>parent</a>. The <a>root</a> <a href="#directoryConcept">directory</a> is the <a>parent</a> of all other nodes in the <a>Directory Tree</a>.</p>
-<p>When this specification says to <dfn id="addToDirectoryTree">add d to the Directory Tree</dfn>, where <var>d</var> is either a file or a <a href="#directoryConcept">directory</a>, a user agent must add <var>d</var> to the <a>Directory Tree</a>, along with its <a>path from root</a>.</p>
-<div class="note"><p>Adding to the <a>Directory Tree</a> involves allocating storage for a <em>new</em> <a href="#directoryConcept">directory</a> or a file, but not necessarily allocating storage for a pre-existing one, which can be added to the <a>Directory Tree</a> through a <a href="#transfer">transfer</a> operation. Failure to allocate storage owing to disk quota issues causes promises in this specification to get rejected with a <code>QuotaExceededError</code>.</p></div>
-<p>When this specification says to <dfn id="removeFromDirectoryTree">remove d from the Directory Tree</dfn>, where <var>d</var> is either a file or a <a href="#directoryConcept">directory</a>, a user agent must remove <var>d</var> from the <a>Directory Tree</a>; in particular, this <a href="#removeThePath">removes the path</a> that <var>d</var> had and removes data associated with <var>d</var>. If <var>d</var> has files or <a href="#subdirectoryConcept">subdirectories</a> these must also be recursively removed, including the storage affiliated with each <a>child</a>.</p>
+<div class="issue"><p>Currently paths of the sort "../.../myDir/yourDir" which are a type of relative path are not permitted. We only allow <em>forward</em> path navigation; allowing "../../" will allow <em>backward</em> path navigation, which we don't mention in this specification.</p></div>
+<p>A <dfn>child</dfn> is a node on the <a>Directory Tree</a> with a position that is below a given position on the <a>Directory Tree</a> for a given <a href="#directoryConcept">directory</a>; a <a href="#subdirectoryConcept">subdirectory</a> of the <a>present working directory</a> is a <a>child</a> of the <a>present working directory</a>; a <a href="#subdirectoryConcept">subdirectory</a> of <em>that</em> <a href="#subdirectoryConcept">subdirectory</a> is also a <a>child</a> of the <a>present working directory</a>. An <dfn>immediate child</dfn> corresponds to a node on the <a>Directory Tree</a> that is either a <a href="#subdirectoryConcept">subdirectory</a> that is the next position on the <a>path</a>, or a <a href="#fileConcept">file</a> that is next on the <a>path</a>. A <dfn>parent</dfn> is a <a href="#directoryConcept">directory</a> that contains a <a href="#fileConcept">file</a> or another <a href="#directoryConcept">directory</a>; in particular, the <a href="#directoryConcept">directory</a> that contains the <a>present working directory</a> is its <a>parent</a>. The <a>root</a> <a href="#directoryConcept">directory</a> is the <a>parent</a> of all other nodes in the <a>Directory Tree</a>.</p>
+<p>When this specification says to <dfn id="addToDirectoryTree">add d to the Directory Tree</dfn>, where <var>d</var> is either a <a href="#fileConcept">file</a> or a <a href="#directoryConcept">directory</a>, a user agent must add <var>d</var> to the <a>Directory Tree</a>, along with its <a>path from root</a>.</p>
+<div class="note"><p>Adding to the <a>Directory Tree</a> involves allocating storage for a <em>new</em> <a href="#directoryConcept">directory</a> or a <a href="#fileConcept">file</a>, but not necessarily allocating storage for a pre-existing one, which can be added to the <a>Directory Tree</a> through a <a href="#transfer">transfer</a> operation. Failure to allocate storage owing to disk quota issues causes promises in this specification to get rejected with a <code>QuotaExceededError</code>.</p></div>
+<p>When this specification says to <dfn id="removeFromDirectoryTree">remove d from the Directory Tree</dfn>, where <var>d</var> is either a <a href="#fileConcept">file</a> or a <a href="#directoryConcept">directory</a>, a user agent must remove <var>d</var> from the <a>Directory Tree</a>; in particular, this <a href="#removeThePath">removes the path</a> that <var>d</var> had and removes data associated with <var>d</var>. If <var>d</var> has <a href="#fileConcept">file</a>s or <a href="#subdirectoryConcept">subdirectories</a> these must also be recursively removed, including the storage affiliated with each <a>child</a>.</p>
 <div class="note"><p>User agents should determine if the storage can be reallocated for subsequent operations.</p></div>
-<p>When this specification says to <dfn id="removeThePath">remove the path</dfn> for a particular node, which is either a file or a <a href="#directoryConcept">directory</a>, a user agent must remove the <a>path from root</a> for that node, without removing the storage allocated to that node or removing its data. This includes recursively removing the <a>path from root</a> for any <a>child</a> of that node, which applies only to <a href="#directoryConcept">directories</a>. </p> 
-<p>When this specification says to <dfn id="transfer">transfer e to directory d</dfn>, where <var>e</var> is either a file or a <a href="#directoryConcept">directory</a>, the following steps must be followed, taking care to check for <a>illegal transfers</a>:</p>
+<p>When this specification says to <dfn id="removeThePath">remove the path</dfn> for a particular node, which is either a <a href="#fileConcept">file</a> or a <a href="#directoryConcept">directory</a>, a user agent must remove the <a>path from root</a> for that node, without removing the storage allocated to that node or removing its data. This includes recursively removing the <a>path from root</a> for any <a>child</a> of that node, which applies only to <a href="#directoryConcept">directories</a>. </p> 
+<p>When this specification says to <dfn id="transfer">transfer e to directory d</dfn>, where <var>e</var> is either a <a href="#fileConcept">file</a> or a <a href="#directoryConcept">directory</a>, the following steps must be followed, taking care to check for <a>illegal transfers</a>:</p>
   <ol>
     <li><p><a href="#removeThePath">Remove the path</a> for <var>e</var>.</p></li>
-    <li><p>If there is already a file or <a href="#directoryConcept">directory</a> <var>o</var> with the identical name as <var>e</var> in <var>d</var>, run the following substeps:  </p>
+    <li><p>If there is already a <a href="#fileConcept">file</a> or <a href="#directoryConcept">directory</a> <var>o</var> with the identical name as <var>e</var> in <var>d</var>, run the following substeps:  </p>
     <ol>
       <li><p><a href="#removeFromDirectoryTree">Remove o from the Directory Tree</a>.</p>
       <div class="note"><p>This includes recursively removing any <a>child</a> nodes of <var>o</var>.</p></div>  
       </li>
-      <li><p><a href="#addToDirectoryTree">Add e to the Directory Tree</a> such that <var>e</var> is an <a>immediate child</a> of <var>d</var>. If <var>e</var> is <a href="#directoryConcept">directory</a>, it becomes a <a href="#subdirectoryConcept">subdirectory</a> of <var>d</var>. If <var>e</var> is a file, it becomes a file contained by <var>d</var>.</p></li>
+      <li><p><a href="#addToDirectoryTree">Add e to the Directory Tree</a> such that <var>e</var> is an <a>immediate child</a> of <var>d</var>. If <var>e</var> is <a href="#directoryConcept">directory</a>, it becomes a <a href="#subdirectoryConcept">subdirectory</a> of <var>d</var>. If <var>e</var> is a <a href="#fileConcept">file</a>, it becomes a <a href="#fileConcept">file</a> contained by <var>d</var>.</p></li>
     </ol>  
     </li>
     <li><p>If <var>e</var> and <var>d</var> are identical, then terminate this algorithm, unless it is a <a href="#renamingOperation">renaming operation</a>.</p></li>
-    <li><p>Otherwise <a href="#addToDirectoryTree">add e to the Directory Tree</a> such that <var>e</var> is an <a>immediate child</a> of <var>d</var>. If <var>e</var> is <a href="#directoryConcept">directory</a>, it becomes a <a href="#subdirectoryConcept">subdirectory</a> of <var>d</var>. If <var>e</var> is a file, it becomes a file contained by <var>d</var>.</p></li>
+    <li><p>Otherwise <a href="#addToDirectoryTree">add e to the Directory Tree</a> such that <var>e</var> is an <a>immediate child</a> of <var>d</var>. If <var>e</var> is <a href="#directoryConcept">directory</a>, it becomes a <a href="#subdirectoryConcept">subdirectory</a> of <var>d</var>. If <var>e</var> is a <a href="#fileConcept">file</a>, it becomes a <a href="#fileConcept">file</a> contained by <var>d</var>.</p></li>
   </ol>
 <div class="note"><p>Like <a href="#addToDirectoryTree">adding to the Directory Tree</a>, a <a href="#transfer">transfer</a> may generate storage quota errors.</p></div>
 <p>The set of <dfn id="illegal">illegal transfers</dfn> which methods invoking the <a href="#transfer">transfer</a> algorithm must prevent are:</p>
@@ -278,14 +279,13 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
 <li>A <a href="#directoryConcept">directory</a> must never be transferred to itself, unless it is a <a href="#renamingOperation">renaming operation</a>.</li>
 <li>A <a>child</a> <var>a</var> of <var>b</var> can never be transferred to the <a>parent</a> of <var>b</var> if it has the same name as <var>b</var>. </li>
 </ul>
-<div class="issue"><p>TODO: See if there is a cohesive algorithm which results in better promise rejection messages for the <code>move</code> operation.</p></div>
-<p>When this specification says to do a <dfn id="#renamingOperation">renaming operation</dfn> with a <em>new</em> <a>name</a> on a node <var>e</var> on the <a>Directory Tree</a>, where <var>e</var> is either a file or a <a href="#directoryConcept">directory</a>, user agents must change the <a>name</a> of <var>e</var> to the <em>new</em> <a>name</a>. If a <a href="#transfer">transfer</a> is invoked on two nodes, <var>e</var> and <var>d</var>, that identify the same node on the <a>Directory Tree</a>, unless <var>d</var> is supplied with a new <a>name</a>, the transfer is considered an <a href="#illegal">illegal transfer</a>. If the method invoking the <a href="#transfer">transfer</a> is supplied a new <a>name</a>, then it can perform a <a href="#renamingOperation">renaming operation</a>.</p>
+<p>When this specification says to do a <dfn id="#renamingOperation">renaming operation</dfn> with a <em>new</em> <a>name</a> on a node <var>e</var> on the <a>Directory Tree</a>, where <var>e</var> is either a <a href="#fileConcept">file</a> or a <a href="#directoryConcept">directory</a>, user agents must change the <a>name</a> of <var>e</var> to the <em>new</em> <a>name</a>. If a <a href="#transfer">transfer</a> is invoked on two nodes, <var>e</var> and <var>d</var>, that identify the same node on the <a>Directory Tree</a>, unless <var>d</var> is supplied with a new <a>name</a>, the transfer is considered an <a href="#illegal">illegal transfer</a>. If the method invoking the <a href="#transfer">transfer</a> is supplied a new <a>name</a>, then it can perform a <a href="#renamingOperation">renaming operation</a>.</p>
 <div class="note"><p>The change to the underlying model's node <var>e</var> will result in a new object, or invalidate existing <a><code>File</code></a> and <a><code>Directory</code></a> objects referring to the underlying resource with the old <a>name</a>, which no longer exists. </p></div>
 <p>When this specification says to <dfn id="crawl-the-entire-path">crawl the entire path</dfn> for a given <a>path</a> <var>p</var>, the following steps must be run:</p>
 <ol>
   <li><p>Let <var>input</var> be set to <a>path</a>, <var>position</var> be a pointer to <var>input</var>, initially set to the first character of <var>input</var>, and <var>tokens</var> be a list of tokens, initially empty. If <var>input</var> is a single U+002F SOLIDUS character, set the <a>Directory Pointer</a> to the <a>root</a> <a href="#directoryConcept">directory</a></a> and terminate this algorithm.</p></li>
   <li><p>If the character at <var>position</var> is a U+002F SOLIDUS character ("/"), set the <a>Directory Pointer</a> to <a>root</a>; this represents a <a>path from root</a>. Otherwise, set it to the <a>present working directory</a>. <a href="#strictly-split-a-string">Strictly split</a> <var>input</var> on the U+002F SOLIDUS character. </p></li>
-  <li><p>For each token in <var>tokens</var>, if the next position of the <a>Directory Pointer</a> strictly matches the <a>name</a> of a <a href="#directoryConcept">directory</a> or a file, advance the <a>Directory Pointer</a> to that <a href="#directoryConcept">directory</a> or file. If it does not strictly match, return failure.</p></li>
+  <li><p>For each token in <var>tokens</var>, if the next position of the <a>Directory Pointer</a> strictly matches the <a>name</a> of a <a href="#directoryConcept">directory</a> or a <a href="#fileConcept">file</a>, advance the <a>Directory Pointer</a> to that <a href="#directoryConcept">directory</a> or <a href="#fileConcept">file</a>. If it does not strictly match, return failure.</p></li>
 
 </ol>
 <p>When this specification says to <dfn id="crawl-the-path-until-node-n">crawl the path until node n</dfn> for a given <a>path</a> <var>p</var> and value for <var>n</var>, the following steps must be run:</p>
@@ -302,7 +302,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
 </section>
   <section>
     <h2>Extensions to Existing Objects</h2>
-    <p>The FileSystem API is exposed to the Web via an extension to the <code>window.navigator</code> object [[!HTML]].  A URL-generating method for individual files within the virtualized filesystem is generated via an extension to the <code>window.URL</code> object [[!URL]].</p>
+    <p>The FileSystem API is exposed to the Web via an extension to the <code>window.navigator</code> object [[!HTML]].  A URL-generating method for individual <a href="#fileConcept">file</a>s within the virtualized filesystem is generated via an extension to the <code>window.URL</code> object [[!URL]].</p>
     <section id="extensionNav">
       <h3>Extension to Navigator</h3>
     <dl title='partial interface Navigator' class='idl'>
@@ -332,7 +332,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </section>
   <section id="Directory">
     <h2>The Directory Interface</h2>
-    <p><a><code>Directory</code></a> objects represent a <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>, and allow for API operations on that <a href="#directoryConcept">directory</a> or on other parts of the <a>Directory Tree</a>, which may affect other <a href="#directoryConcept">directories</a>. The <a>root</a> <a><code>Directory</code></a> object represents the <a>root</a> <a href="#directoryConcept">directory</a>. Each <a><code>Directory</code></a> object must refer to the <a>present working directory</a>, unless any method called on that <a><code>Directory</code></a> uses a <a>path</a> argument that refers to another <a href="#directoryConcept">directory</a> or file. </p>
+    <p><a><code>Directory</code></a> objects represent a <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>, and allow for API operations on that <a href="#directoryConcept">directory</a> or on other parts of the <a>Directory Tree</a>, which may affect other <a href="#directoryConcept">directories</a>. The <a>root</a> <a><code>Directory</code></a> object represents the <a>root</a> <a href="#directoryConcept">directory</a>. Each <a><code>Directory</code></a> object must refer to the <a>present working directory</a>, unless any method called on that <a><code>Directory</code></a> uses a <a>path</a> argument that refers to another <a href="#directoryConcept">directory</a> or <a href="#fileConcept">file</a>. </p>
     <section id="DirectoryOrigin">
       <h2>Origin of a Directory</h2>
       <p>The <a>origin</a> of a <a><code>Directory</code></a> is the same as the <a>origin</a> of the <a><code>document</code></a> or <a><code>worker</code></a>. Each <a>origin</a> has one <a><code>root</code></a> <a><code>Directory</code></a>.</p>
@@ -375,7 +375,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
     </section>
     <section id="rejectionDirectoryPromise">
       <h2>Directory Promise Rejection Error Table</h2>
-      <p>Rejection of <a><code>Directory</code></a>-creation promises occur with the errors and reasons shown in the <dfn>Directory Promise Rejection Error Table</dfn> below.</p>
+      <p>Rejection of <a><code>Directory</code></a>-creation promises and promises with <a>I/O Transactions</a> occur with the errors and reasons shown in the <dfn>Directory Promise Rejection Error Table</dfn> below.</p>
         <table><thead><tr><th>Type
        </th><th>Description and Failure Reason
      </th></tr></thead><tbody><tr><td><dfn id="dfn-QuotaExceededError" title="QuotaExceededError"><code>QuotaExceededError</code></dfn>
@@ -384,7 +384,14 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
       </td></tr><tr><td><dfn id="dfn-SecurityError" title="SecurityError"><code>SecurityError</code></dfn>
        </td><td><p>If the user agent determines that the <a href="directoryConcept">directory</a> creation operation causes a security risk.</p>
 
-      </td></tr></tbody></table>
+      </td></tr>
+      <tr><td><dfn id="dfn-InvalidStateError" title="InvalidStateError"><code>InvalidStateError</code></dfn>
+      </td><td><p>If the user agent determines that an <a>I/O Transaction</a> cannot be initiated due to <a>lifetime</a> rules, or if parameter inconsistencies exist (e.g. referring to a non-existent <a href="#fileConcept">file</a> or <a href="#directoryConcept">directory</a> for a given operation) then this error must be used.</p>
+      <div class="note"><p>This includes <a>mode</a> constraints on an <a>I/O Transaction</a> as a type of <a>lifetime</a> error condition -- no two <a href="#readwriteTransaction">readwrite</a> I/O Transactions can run concurrently.</p></div>
+      </td></tr>
+      <tr><td><dfn id="dfn-TransactionInactiveError" title="TransactionInactiveError"><code>TransactionInactiveError</code></dfn>
+      </td><td><p>If a <a href="#fileConcept">file</a> read or write <a href="#requestIO">request</a> takes place on an <a>I/O Transaction</a> that is not in the <a>active</a> state, this error must be used.</p></td></tr>
+    </tbody></table>
     </section>
     <section>
       <h2>Directory WebIDL</h2>
@@ -405,9 +412,9 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
           </li>
           <li><p>If the nth token in <var>tokens</var> identifies a <a href="#directoryConcept">directory</a>, reject <var>p</var> with an 
           <code>InvalidStateError</code>.</p>
-        <div class="note"><p>The <code>path</code> argument must identify a file.</p></div>
+        <div class="note"><p>The <code>path</code> argument must identify a <a href="#fileConcept">file</a>.</p></div>
         </li>
-          <li><p>Otherwise, if the nth token in <var>tokens</var> strictly matches the name of a pre-existing file at the next position of the <a>Directory Pointer</a>, run the following substeps:</p>
+          <li><p>Otherwise, if the nth token in <var>tokens</var> strictly matches the name of a pre-existing <a href="#fileConcept">file</a> at the next position of the <a>Directory Pointer</a>, run the following substeps:</p>
             <ol>
               <li><p>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "fail" then reject <var>p</var> with a <code>NoModificationAllowedError</code>.</p></li>
               <li><p>If the <a><code>CreateIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member of the <code>options</code> argument is "replace" then run the following substeps:</p>
@@ -417,7 +424,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
                       <li><p>Treat the <code>data</code> member of the <code>options</code> dictionary as if it was a single element in the <code>fileBits</code> <code>sequence</code>, and follow the step for that type from the <a>File Constructor Steps</a>.</p></li>
                       <li><p>Replace the <code>fileName</code> parameter with the nth token in <var>tokens</var>, and normalize it according to the <a>File Constructor Steps</a>.</p></li>
                       <li><p>Set <code>f.lastModifiedDate</code> to the current date and time represented as the number of milliseconds since the <a>Unix Epoch</a> (which is the equivalent of <code>Date.now()</code> [[!ECMAScript]]).</p></li>
-                      <li><div class="issue"><p>This API gives no way to configure the <code>type</code> of a <code>File</code> since filesystems do not store the type of a file. But the File constructor steps allow developers to mint File object with a <code>type</code>.</p></div></li>
+                     
                     </ul>
 
                   </li>
@@ -429,19 +436,19 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
               </li>
             </ol>
           </li>
-          <li><p>If the nth token does not strictly match the name of a pre-existing file at the next position of the <a>Directory Pointer</a> run the following substeps:</p>
+          <li><p>If the nth token does not strictly match the name of a pre-existing <a href="#fileConcept">file</a> at the next position of the <a>Directory Pointer</a> run the following substeps:</p>
                 <ol>
                   <li><p>Let <var>f</var> be a new <code>File</code> constructed according to the <a>File Constructor Steps</a> with the following modifications:</p>
                     <ul>
                       <li><p>Treat the <code>data</code> member of the <code>options</code> dictionary as if it was a single element in the <code>fileBits</code> <code>sequence</code>, and follow the step for that type from the <a>File Constructor Steps</a>.</p></li>
                       <li><p>Replace the <code>fileName</code> parameter with the nth token in <var>tokens</var>, and normalize it according to the <a>File Constructor Steps</a>.</p></li>
                       <li><p>Set <code>f.lastModifiedDate</code> to the current date and time represented as the number of milliseconds since the <a>Unix Epoch</a> (which is the equivalent of <code>Date.now()</code> [[!ECMAScript]).</p></li>
-                      <li><div class="issue"><p>This API gives no way to configure the <code>type</code> of a <code>File</code> since filesystems do not store the type of a file. But the File constructor steps allow developers to mint File object with a <code>type</code>.</p></div></li>
+                     
 
                     </ul>
                   </li>
                   <li><p><a href="#addToDirectoryTree">Add the file</a> represented by <var>f</var> to the next position of the <a>Directory Pointer</a> and advance the <a>Directory Pointer</a> to point to <var>f</var>. If <a href="#addToDirectoryTree">adding to the Directory Tree</a> raises any error, reject <var>p</var> with the most appropriate error from the <a>Directory Promise Rejection Error Table</a></p>.
-                 <div class="issue"><p>Rejection in this algorithm occurs at a later stage than may be desirable; "short-circuiting" this might be good.</p></div>   
+                  
                   </li>
                   <li><p>Otherwise, resolve <var>p</var> with <var>f</var>.</p></li>
                   
@@ -478,7 +485,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
           <li><p>If <a href="#crawl-the-entire-path">crawling the entire path</a> represented by the <code>path</code> argument returns failure, reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
           <li><p>Otherwise, set <var>d</var> to the node at the position the <a>Directory Pointer</a> is pointing to, and run the following substeps:</p>
             <ol>
-              <li><p>If <var>d</var> is a file, resolve <var>p</var> with a new <code>File</code> representing <var>d</var>.</p></li>
+              <li><p>If <var>d</var> is a <a href="#fileConcept">file</a>, resolve <var>p</var> with a new <code>File</code> representing <var>d</var>.</p></li>
               <li><p>If <var>d</var> is a <a href="#directoryConcept">directory</a>, resolve <var>p</var> with a new <a><code>Directory</code></a> representing <var>d</var>.</p></li>
             </ol>
 
@@ -507,7 +514,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
             <ol>
               <li><a href="#crawl-the-entire-path">Crawl the entire path</a> represented by <code>dest</code> as a <a>path</a>. If it returns failure, then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
               <li>If the <a>path</a> represented by <code>dest</code> is a <code>File</code>, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
-              <div class="note"><p>It is an error to move a <a href="#directoryConcept">directory</a> or a file to the location of another file; <code>dest</code> must represent a <a href="#directoryConcept">directory</a>, either through a valid <a>path</a> string, a <a><code>Directory</code></a> object, or the <a><code>DestinationDict</code></a> dictionary argument.</p></div>
+              <div class="note"><p>It is an error to move a <a href="#directoryConcept">directory</a> or a <a href="#fileConcept">file</a> to the location of another <a href="#fileConcept">file</a>; <code>dest</code> must represent a <a href="#directoryConcept">directory</a>, either through a valid <a>path</a> string, a <a><code>Directory</code></a> object, or the <a><code>DestinationDict</code></a> dictionary argument.</p></div>
               </li>
             </ol>
           </li>
@@ -537,7 +544,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   <dt>Promise&lt;boolean> remove((DOMString or File or Directory) path)</dt>
   <dd>
     <p>When the <code>remove(path)</code> method is called, the user agent must run the steps below:</p>
-    <div class="issue"><p>Is it better to take advantage of boolean semantics and ONLY resolve this promise with true or false (never reject) or to reject this promise, like other Directory operation promises get rejected? #bikeshed?</p></div>
+    
     <ol>
       <li><p>Let <var>p</var> be a new promise.</p></li>
       <li><p>Run the following steps asynchronously:</p>
@@ -547,11 +554,10 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
             <ol>
               <li>
                 <p><a href="#removeFromDirectoryTree">Remove from the Directory Tree</a> the node identified by the <code>path</code> argument.</p>
-                <div class="issue"><p>Error conditions could arise with removal. This should generate a fulfillment with <code>false</code>.</p></div>
+                <div class="note"><p>Any <a href="#requestIO">request</a> on this <a href="#fileConcept">file</a> as a <a>scope file</a> must immediately be rejected with an <code>InvalidStateError</code>, and the <a>I/O Transaction</a> must <a href="#closed">close</a>.</p></div>
               </li>
               <li><p>Resolve <var>p</var> with <code>true</code>.</p></li>
             </ol>
-            <div class="issue"><p>This has implications for existing <code>File</code> object references. The "lock" problem needs to be solved.</p></div>
           </li>
           <li><p>If <code>path</code> represents a <a href="#directoryConcept">directory</a> run the following substeps:</p>
             <ol>
@@ -560,9 +566,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
               <ol>
               <li>
                 <p><a href="#removeFromDirectoryTree">Remove from the Directory Tree</a> the node identified by the <code>path</code> argument.</p>
-                <div class="issue"><p>This has implications for existing <code>Directory</code> object references. The "lock" problem needs to be solved.</p>
-                  <p>Error conditions could arise with removal. This should generate a fulfillment with <code>false</code>.</p>
-                </div>
+              
               </li>
               <li><p>Resolve <var>p</var> with <code>true</code>.</p></li>
             </ol>
@@ -577,7 +581,6 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   <dt>Promise&lt;boolean> removeDeep((DOMString or File or Directory) path)</dt>
   <dd>
     <p>When the <code>removeDeep(path)</code> method is called, the user agent must run the steps below:</p>
-    <div class="issue"><p>Is it better to take advantage of boolean semantics and ONLY resolve this promise with true or false (never reject) or to reject this promise, like other Directory operation promises get rejected? #bikeshed?</p></div>
     <ol>
       <li><p>Let <var>p</var> be a new promise.</p></li>
       <li><p>Run the following steps asynchronously:</p>
@@ -587,17 +590,17 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
             <ol>
               <li>
                 <p><a href="#removeFromDirectoryTree">Remove from the Directory Tree</a> the node identified by the <code>path</code> argument.</p>
+                <div class="note"><p>Any <a href="#requestIO">request</a> on this <a href="#fileConcept">file</a> as a <a>scope file</a> must immediately be rejected with an <code>InvalidStateError</code>, and the <a>I/O Transaction</a> must <a href="#closed">close</a>.</p></div>
               </li>
               <li><p>Resolve <var>p</var> with <code>true</code>.</p></li>
             </ol>
-            <div class="issue"><p>This has implications for existing <code>File</code> object references. The "lock" problem needs to be solved.</p></div>
           </li>
           <li><p>If <code>path</code> represents a <a href="#directoryConcept">directory</a> run the following substeps:</p>
             <ol>
               <li><p>If <code>path</code> has no <a>child</a> nodes, run the following substeps:</p>
                 <ol>
                   <li><a href="#removeFromDirectoryTree">remove from the Directory Tree</a> the node identifed by the <code>path</code> argument.
-                    <div class="issue"><p>Error conditions could arise with removal. This should generate a fulfillment with <code>false</code>.</p></div>
+                   
                   </li>
                   <li>Resolve <var>p</var> with <code>true</code></li>
                 </ol>
@@ -606,7 +609,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
               <ol>
               <li>
                 <p>Recursively <a href="#removeFromDirectoryTree">remove from the Directory Tree</a> the node identified by the <code>path</code> argument, including all <a>child</a> nodes.</p>
-                <div class="issue"><p>This has implications for existing <code>Directory</code> object references, for both the <a>present working directory</a> and all <a>child</a> nodes. The "lock" problem needs to be solved.</p><p>Error conditions could arise with removal. This should generate a fulfillment with <code>false</code>.</p></div>
+               <div class="note"><p>Any <a href="#requestIO">request</a> on <a href="#fileConcept">file</a>(s) as a <a>scope file</a>(s) must immediately be rejected with an <code>InvalidStateError</code>, and the affiliated <a>I/O Transaction</a>(s) must <a href="#closed">close</a>.</p></div>
               </li>
               <li><p>Resolve <var>p</var> with <code>true</code>.</p></li>
             </ol>
@@ -628,9 +631,20 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
         <li><p>If <code>path</code> is a <code>DOMString</code>, run the following substeps:</p>
           <ol>
             <li><a href="#crawl-the-entire-path">Crawl the entire path.</a> If it returns failure, then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
-            <li>If <code>path</code> represents a <a href="#directoryConcept">directory</a> node and not a file node, reject <var>p</var> with an <code>InvalidStateError</code>.
+            <li>If <code>path</code> represents a <a href="#directoryConcept">directory</a> node and not a <a href="#fileConcept">file</a> node, reject <var>p</var> with an <code>InvalidStateError</code>.
             </li>
-          <li><p>Otherwise, resolve <var>p</var> with a new <code>FileHandle</code> set to refer to the file at <code>path</code>.</p></li>  
+          <li><p>Otherwise, run the following substeps: </p>
+            <ol>
+              <li><p>If the <a>I/O Transaction</a> cannot be initiated according to the <a>lifetime</a> rules, reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
+              <li><p>Otherwise, let <var>f</var> be a new <a><code>FileHandle</code></a> set to refer to the <a href="#fileConcept">file</a> at <code>path</code>. Set the <code>FileOpenMode</code> enum property on <var>f</var> to <code>readonly</code>.</p></li>
+              <li><p><a href="#initiateIO">Initiate</a> the <a href="#readonlyTransaction">readonly</a> <a>I/O Transaction</a> associated with <var>f</var> according to the <a>lifetime</a> rules.</p>  
+              </li>
+              <li><p>Resolve <var>p</var> with <var>f</var>.</p>
+                
+
+              </li>  
+            </ol>
+          </li>
         </ol>
         </li>
         <li>Return <var>p</var>.</li>
@@ -654,39 +668,58 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
           <li><p>If <a href="#crawl-the-path-until-node-n">crawling the path until node n-1</a> for the <code>path</code> argument returns failure, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
           </li>
           <li><p>If the node identified by the token at <var>n</var> is a <a href="#directoryConcept">directory</a>, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
-          <div class="note"><p>If a DOMString is used for <code>path</code>, it must point to a file in the <a>Directory Tree</a>, or be a the name of a potential new file.</p></div>
+          <div class="note"><p>If a DOMString is used for <code>path</code>, it must point to a <a href="#fileConcept">file</a> in the <a>Directory Tree</a>, or be a the name of a potential new <a href="#fileConcept">file</a>.</p></div>
+          </li>
+          <li><p>If an error occurs from the <a>Directory Promise Rejection Error Table</a>, reject <var>p</var> with the most appropriate rejection error.</p>
+          <div class="note"><p>Multiple genres of error may take place. Writing to given <a href="#fileConcept">file</a> in the <a>Directory Tree</a> may raise quota errors. Additionally, <a>lifetime</a> rules on <a>I/O Transactions</a> don't allow for two <a href="#readwriteTransaction">readwrite</a> I/O Transactions to operate on the same <a>scope file</a> concurrently; if this operation violates the <a>mode</a> restriction, <var>p</var> must be rejected the most appropriate error from the <a>Directory Promise Rejection Error Table</a>.</p></div>  
           </li> 
           <li>Otherwise, set <var>filename</var> to the <var>n</var>th token.</li>
          
         </ol>
       </li>
        <li><p>If <code>path</code> is a <a><code>File</code></a> then set <var>filename</var> to <code>path.name</code>.</p></li> 
-       <li><p>If <code>path</code> is a <a><code>File</code></a> and <var>filename</var> corresponds to an existing file's name in the <a>present working directory</a> OR path is a DOMString and <var>filename</var> corresponds to a file's name in the <a href="#directoryConcept">directory</a> identified by the <var>n-1</var>th token, then run the following substeps: </p>
+       <li><p>If <code>path</code> is a <a><code>File</code></a> and <var>filename</var> corresponds to an existing <a href="#fileConcept">file</a>'s name in the <a>present working directory</a> OR path is a DOMString and <var>filename</var> corresponds to a <a href="#fileConcept">file</a>'s name in the <a href="#directoryConcept">directory</a> identified by the <var>n-1</var>th token, then run the following substeps: </p>
       <div class="note"><p>If path is a <a><code>File</code></a>, then this method applies to the <a>present working directory</a>; if <a>path</a> is a DOMString, then this method applies to the <a href="#directoryConcept">directory</a> identified by <a>path</a>'s <var>n-1</var>th token.</p></div>
       <ol>
         <li><p>If the optional <a><code>OpenWriteOptions</code></a> dictionary argument is used, and the <a><code>OpenIfExistsMode</code></a> <a><code>ifExists</code></a> member is "fail" then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
         <li><p>Otherwise, if the <a><code>OpenIfExistsMode</code></a> <a><code>ifExists</code></a> dictionary member is "open" then run the substeps below:</p>
         <div class="note"><p>This enum value is set to "open" by default.</p></div>
           <ol>
-            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>true</code>, resolve <var>p</var> with a <a>flushing</a> <a><code>FileHandleWritable</code></a> object set to the file corresponding to <code>path</code>. </p>  
+            
+            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>true</code>, run the following substeps:</p>
+              <ol><li><p>Let <var>f</var> be a <a>flushing</a> <a><code>FileHandleWritable</code></a> with the <a><code>FileOpenMode</code></a> enum set to <code>readwrite</code>, and set to the <a>scope file</a> corresponding to <code>path</code>, and with <var>f</var>.<code>active</code> set to <code>true</code>.</p></li> 
+              <li><p><a href="#initiateIO">Initiate</a> the <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> associated with <var>f</var> according to the <a>lifetime</a> rules.</p></li>
+              <li><p>Resolve <var>p</var> with <var>f</var>.</p></li>
+              </ol> 
             </li>
-            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>false</code>, resolve <var>p</var> with a <a>non-flushing</a> <a><code>FileHandleWritable</code></a> object set to the file corresponding to <code>path</code>. </p>
-            <div class="note"><p>This value is set to <code>false</code> by default.</p></div>  
+            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>false</code>, run the following substeps:</p>
+              <ol><li>Let <var>f</var> be a <a>non-flushing</a> <a><code>FileHandleWritable</code></a> with the <a><code>FileOpenMode</code></a> enum set to <code>readwrite</code>, and set to the <a>scope file</a> corresponding to <code>path</code>. Set <var>f</var>.<code>active</code> to <code>true</code>.</p></li>
+              <li><p><a href="#initiateIO">Initiate</a> the <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> associated with <var>f</var> according to the <a>lifetime</a> rules.</p></li>
+              <li><p>Resolve <var>p</var> with <var>f</var>.</p></li>
+            </ol>
             </li>
 
           </ol>
         </li>
-        <li><p>Otherwise, if <code>path</code> is a <a><code>File</code></a> and <var>filename</var> does NOT correspond to an existing file's name in the <a>present working directory</a> OR <code>path</code> is a DOMString and <var>filename</var> does NOT correspond to a file's name in the <a href="#directoryConcept">directory</a> identified by the <var>n-1</var>th token, then run the following substeps: </p>
+        <li><p>Otherwise, if <code>path</code> is a <a><code>File</code></a> and <var>filename</var> does NOT correspond to an existing <a href="#fileConcept">file</a>'s name in the <a>present working directory</a> OR <code>path</code> is a DOMString and <var>filename</var> does NOT correspond to a <a href="#fileConcept">file</a>'s name in the <a href="#directoryConcept">directory</a> identified by the <var>n-1</var>th token, then run the following substeps: </p>
         <ol>
           <li><p>If the optional <a><code>OpenWriteOptions</code></a> dictionary argument is used, and the <a><code>OpenIfNotExistsMode</code></a> <a><code>ifNotExists</code></a> member is "fail" then reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
           <li><p>Otherwise, if the <a><code>OpenIfNotExistsMode</code></a> <a><code>ifNotExists</code></a> dictionary member is "create" then run the substeps below: 
           </p>
           <div class="note"><p>This enum value is set to "create" by default.</p></div>
              <ol>
-            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>true</code>, resolve <var>p</var> with a <a>flushing</a> <a><code>FileHandleWritable</code></a> object set to the file corresponding to <code>path</code>. </p>  
+            
+            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>true</code>, run the following substeps:</p>
+              <ol><li><p>Let <var>f</var> be a <a>flushing</a> <a><code>FileHandleWritable</code></a> with the <a><code>FileOpenMode</code></a> enum set to <code>readwrite</code>, and set to the <a>scope file</a> corresponding to <code>path</code>, and with <var>f</var>.<code>active</code> set to <code>true</code>.</p></li> 
+              <li><p><a href="#initiateIO">Initiate</a> the <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> associated with <var>f</var> according to the <a>lifetime</a> rules.</p></li>
+              <li><p>Resolve <var>p</var> with <var>f</var>.</p></li>
+              </ol> 
             </li>
-            <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>false</code>, resolve <var>p</var> with a <a>non-flushing</a> <a><code>FileHandleWritable</code></a> object set to the file corresponding to <code>path</code>. </p>
-            <div class="note"><p>This value is set to <code>false</code> by default.</p></div>  
+           <li><p>If the <a><code>Flush</code></a> dictionary member is set to <code>false</code>, run the following substeps:</p>
+              <ol><li>Let <var>f</var> be a <a>non-flushing</a> <a><code>FileHandleWritable</code></a> with the <a><code>FileOpenMode</code></a> enum set to <code>readwrite</code>, and set to the <a>scope file</a> corresponding to <code>path</code>. Set <var>f</var>.<code>active</code> to <code>true</code>.</p></li>
+              <li><p><a href="#initiateIO">Initiate</a> the <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> associated with <var>f</var> according to the <a>lifetime</a> rules.</p></li>
+              <li><p>Resolve <var>p</var> with <var>f</var>.</p></li>
+            </ol>
             </li>
 
           </ol>
@@ -703,12 +736,12 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
 
       </li>
     </li>
-    <li>Return <var>p</var></li>
+    <li>Return <var>p</var>.</li>
     </ol>
   </dd>
   <dt>Observable&lt;(File or Directory)> enumerate(optional DOMString path)</dt>
   <dd>
-    <div class="issue"><p>The <code>Observable</code> async generator and semantics around it are not well-defined yet. This is a general platform problem; <code>Observable</code> currently is a proposal within TC-39, and this should be considered "placeholder" semantics till the proposal becomes a language formalism.</p>
+    <div class="issue"><p>The <code>Observable</code> async generator and semantics around it are not well-defined yet; for instance, the name of the underlying primitive might end up being <code>AsyncObservable</code>. This is a general platform problem; <code>Observable</code> currently is a proposal within TC-39, and this should be considered "placeholder" semantics till the proposal becomes a language formalism.</p>
     </div>
     <p>When the <code>enumerate(path)</code> method is called, the user agent must run the steps below:</p>
      <ol>
@@ -718,7 +751,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
         <li>If a parameter is provided, and <a href="#crawl-the-entire-path">crawling the entire path</a> returns failure, invoke the <code>Observable</code>'s rejection path with an <code>InvalidStateError</code>.</li>
         <li>If <a href="#crawl-the-entire-path">crawling the entire path</a> does not return failure, run the substeps below:
           <ol>
-            <li>If the <a>Directory Pointer</a> points to a file, emit a <a><code>File</code></a> corresponding to the file; when done, invoke this <code>Observable</code>'s final state.</li>
+            <li>If the <a>Directory Pointer</a> points to a <a href="#fileConcept">file</a>, emit a <a><code>File</code></a> corresponding to the <a href="#fileConcept">file</a>; when done, invoke this <code>Observable</code>'s final state.</li>
             <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, for each <a>immediate child</a>, emit a corresponding object (<a><code>File</code></a> or <a><code>Directory</code></a>) until done; when done, invoke this <code>Observable</code>'s final state.</li>
           </ol>
         </li>
@@ -726,17 +759,15 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   </dd>
   <dt>Observable&lt;(File)> enumerateDeep(optional DOMString path)</dt>
   <dd>
-    <div class="issue"><p>The <code>Observable</code> async generator and semantics around it are not well-defined yet. This is a general platform problem; <code>Observable</code> currently is a proposal within TC-39, and this should be considered "placeholder" semantics till the proposal becomes a language formalism.</p>
-    </div>
       <p>When the <code>enumerateDeep(path)</code> method is called, the user agent must run the steps below:</p>
       <ol>
         <li>If no parameter is provided, set the <a>Directory Pointer</a> to the <a>present working directory</a> and run the following substeps:
          <ol>
-         <li><p>If there are <a>immediate child</a> nodes and they are files, emit a corresponding <a><code>File</code></a> object.</p>
+         <li><p>If there are <a>immediate child</a> nodes and they are <a href="#fileConcept">file</a>s, emit a corresponding <a><code>File</code></a> object.</p>
           <div class="note"><p>If there are no <a>immediate child</a> nodes, this becomes the empty <code>Observable</code>.</p></div>
          </li> 
          <li><p>If any <a>immediate child</a> is a <a href="#directoryConcept">directory</a>, run the following substeps for all <a>child</a> nodes of that <a href="#directoryConcept">directory</a>:
-          <ol><li>Set the <a>Directory Pointer</a> to the <a href="#directoryConcept">directory</a> and emit a corresponding <a><code>File</code></a> object for any <a>immediate child</a> nodes that are files.</p></li>
+          <ol><li>Set the <a>Directory Pointer</a> to the <a href="#directoryConcept">directory</a> and emit a corresponding <a><code>File</code></a> object for any <a>immediate child</a> nodes that are <a href="#fileConcept">file</a>s.</p></li>
             <li>If any <a>immediate child</a> nodes are <a href="#directoryConcept">directories</a>, run the step above on them.</li>
           
         </ol>
@@ -747,14 +778,14 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
         <li><p>If a parameter is provided, and <a href="#crawl-the-entire-path">crawling the entire path</a> returns failure, invoke the <code>Observable</code>'s rejection path with an <code>InvalidStateError</code>.</p></li>
         <li><p>If <a href="#crawl-the-entire-path">crawling the entire path</a> above does not return failure, run the substeps below:</p>
           <ol>
-            <li><p>If the <a>Directory Pointer</a> points to a file, emit a <a><code>File</code></a> corresponding to the file; when done, invoke this <code>Observable</code>'s final state.</p></li>
+            <li><p>If the <a>Directory Pointer</a> points to a <a href="#fileConcept">file</a>, emit a <a><code>File</code></a> corresponding to the <a href="#fileConcept">file</a>; when done, invoke this <code>Observable</code>'s final state.</p></li>
             <li>If the <a>Directory Pointer</a> points to a <a href="#directoryConcept">directory</a>, run the following substeps:
           <ol>
-          <li><p>If there are <a>immediate child</a> nodes and they are files, emit a corresponding <a><code>File</code></a> object.</p>
+          <li><p>If there are <a>immediate child</a> nodes and they are <a href="#fileConcept">file</a>s, emit a corresponding <a><code>File</code></a> object.</p>
           <div class="note"><p>If there are no <a>immediate child</a> nodes, this becomes the empty <code>Observable</code>.</p></div>
          </li> 
          <li><p>If any <a>immediate child</a> is a <a href="#directoryConcept">directory</a>, run the following substeps for all <a>child</a> nodes of that <a href="#directoryConcept">directory</a>:
-          <ol><li>Set the <a>Directory Pointer</a> to the <a href="#directoryConcept">directory</a> and emit a corresponding <a><code>File</code></a> object for any <a>immediate child</a> nodes that are files.</p></li>
+          <ol><li>Set the <a>Directory Pointer</a> to the <a href="#directoryConcept">directory</a> and emit a corresponding <a><code>File</code></a> object for any <a>immediate child</a> nodes that are <a href="#fileConcept">file</a>s.</p></li>
             <li>If any <a>immediate child</a> nodes are <a href="#directoryConcept">directories</a>, run the step above on them.</li></ol>
             
       </li>
@@ -770,31 +801,124 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   <section>
     <h2>The FileHandle interface</h2>
     <section>
+      <h3>File References and I/O Transactions</h3>
+      <p>
+        The <a><code>FileHandle</code></a> family of objects includes the <a><code>FileHandle</code></a> object and the <a><code>FileHandleWritable</code></a> object, and are references to individual <a href="#fileConcept">files</a> in the <a>Directory Tree</a> or to <a><code>File</code></a> objects not yet written to the <a>Directory Tree</a>. Since a <a><code>FileHandleWritable</code></a> inherits from a <a><code>FileHandle</code></a>, this specification refers to both as <a><code>FileHandle</code></a>s. Each <a><code>FileHandle</code></a> is said to have a single <dfn>scope file</dfn> which is the <a href="#fileConcept">file</a> in the <a>Directory Tree</a> that the <a><code>FileHandle</code></a> object refers to, or is the byte stream that will be added to the <a>Directory Tree</a>. A <a><code>FileHandle</code></a> object can be used to read a file, and a <a><code>FileHandleWritable</code></a> object can be used to both read from <em>and</em> write to a <a>scope file</a>.</p> 
+
+        <p>Each <a><code>FileHandle</code></a> initiates and terminates an <dfn>I/O Transaction</dfn>, which reads or writes to a given <a>scope file</a>, depending on <a>mode</a>.  Each individual read or write operation on an I/O Transaction is called a <a href="#requestIO">request</a>. I/O Transactions are short-lived and allow for multiple atomic read or write <a href="#requestIO">requests</a>. Each I/O Transaction has a <a>mode</a> which lasts for the entirety of its <a>lifetime</a>. Each <a>I/O Transaction</a> has an <dfn>active</dfn> flag; when set, it means the <a>I/O Transaction</a> can start <a href="#requestIO">requests</a> on the <a>scope file</a>, depending on its <a>mode</a>. I/O Transactions must maintain a <dfn>request list</dfn> of <a href="#requestIO">request</a>s, which are put in the <a>request list</a> in order of creation. </p>
+
+        <p>When <a>active</a>, an I/O Transaction can read or write data, depending on <a>mode</a>. </p>
+        
+        <p>Each <a>I/O Transaction</a> is subject to the following <dfn>lifetime </dfn> rules:</p>
+        <ol>
+          <li><p>An <a>I/O Transaction</a> is <dfn id="initiateIO">initiated</dfn> in one of two <dfn>mode</dfn>s, defined below:</p> 
+            <ul>
+              <li><p>A <dfn id="readonlyTransaction">readonly</dfn> I/O Transaction must only be allowed to read data from the <a>scope file</a>, and is initiated by a fulfilled promise on the <a href="#widl-Directory-openRead-Promise-FileHandle--DOMString-File-path"><code>openRead()</code></a> operation, called on a <a><code>Directory</code></a> object. This type of I/O Transaction belongs to a <a><code>FileHandle</code></a> object, on which write operations cannot take place on the <a>scope file</a>; only read <a href="#requestIO">requests</a> are allowed. Any number of <a href="#readonlyTransaction">readonly</a> <a>I/O Transactions</a> may run at the same time on the same <a>scope file</a>, which is an advantage of this <a>mode</a>.  If two concurrent <a href="#readonlyTransaction">readonly</a> <a>I/O Transaction</a>s are running, the data that the implementation returns through read operations on each  <a>I/O Transaction</a> MUST remain constant. That is, two concurrent requests to read the same piece of data MUST yield the same result both for the case when data is found and the result is that data, and for the case when data is not found and a lack of data is indicated. </p>
+              <div class="note"><p>There are a number of ways that an implementation ensures this. The implementation may prevent any <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a>, whose <a>scope file</a> is the same as the <a>scope file</a> of the <a href="#readonlyTransaction">readonly</a> <a>I/O Transaction</a>, from <a href="#dfn-startTransaction">starting</a> until the <a href="#readonlyTransaction">readonly</a> <a>I/O Transaction</a> <a href="#finishTransaction">finishes</a>. Or the implementation can allow the <a href="#readonlyTransaction">readonly</a> <a>I/O Transaction</a> to see a snapshot of the contents of the scope file which is taken when the <a href="#readonlyTransaction">readonly</a> <a>I/O Transaction</a> started. </p></div>  
+              </li>
+              <li><p>A <dfn id="readwriteTransaction">readwrite</dfn> I/O Transaction is allowed to read <em>and</em> write data from the <a>scope file</a>, and is initiated by a fulfilled promise on the <a href="#widl-Directory-openWrite-Promise-FileHandleWritable--DOMString-File-path-OpenWriteOptions-options"><code>openWrite()</code></a> operation, called on a <a><code>Directory</code></a> object. This type of I/O Transaction belongs to a <a><code>FileHandleWritable</code></a> object, on which both read and write requests can take place on the scope file. Multiple <a href="#readwriteTransaction">readWrite</a> <a>I/O Transactions</a> must NOT run at the same time on the same <a>scope file</a>, since otherwise that may mean that they would modify each other's data. Implementations must ensure that another <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> does not modify the <a>scope file</a> while the present <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> is <a>active</a>. If multiple <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a>s are attempting to write to the same <a>scope file</a>, the <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> that is first gets access to the <a>scope file</a> first.</p>
+              <div class="note"><p>Implementations must reject <code>openWrite()</code> promises that violate the concurrency condition for this mode with an <a href="#dfn-InvalidStateError"><code>InvalidStateError</code></a> <code>DOMException</code>.</p></div>
+              </li>
+            </ul>
+
+          </li>
+          <li><p>Once an <a>I/O Transaction</a> is <a href="#initiateIO">initiated</a>, its <a>active</a> flag is set to <code>true</code>. Implementations must allow read or write operations, depending on the <a>mode</a>, against an I/O Transaction when the <a>active</a> flag is set to true.</p>
+          <div class="note"><p>This also sets the <a href="#widl-FileHandle-active"><code>active</code></a> boolean property on the <a><code>FileHandle</code></a> or the <a><code>FileHandleWritable</code></a> to <code>true</code>.</p></div>
+          </li>
+          <li><p>Once an implementation is able to enforce the constraints defined for the <a>mode</a>, the I/O Transaction can be asynchronously <dfn id="dfn-startTransaction">started</dfn> by the <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a> method.</p>
+          <div class="note"><p>The timing for when this happens is affected by the <a>mode</a> of the <a>I/O Transaction</a> and the <a>scope file</a> in question.</p></div>
+          </li>
+          <li><p>Once an <a>I/O Transaction</a> has been <a href="#dfn-startTransaction">started</a>, it can read or write from a <a>scope file</a>, depending on <a>mode</a>, and on whether <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a> has been called. At the time an individual <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size">read()</a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value">write()</a> operation is <a href="#processRequests">processing</a>, the <a>active</a> flag must be set to <code>false</code>. Implementations must NOT allow read or write operations, depending on the <a>mode</a>, against an I/O Transaction when the <a>active</a> flag is set to false. </p>
+          <div class="note"><p>This also sets the <a href="#widl-FileHandle-active"><code>active</code></a> boolean property on the <a><code>FileHandle</code></a> or the <a><code>FileHandleWritable</code></a> to <code>false</code>.</p></div> 
+          </li>
+          <li><p>Once a read or write <a href="#requestIO">request</a> is <a href="#requestTerminate">terminated</a>, the <a>I/O Transaction</a> must become <a>active</a> again if it has further <a href="#requestIO">requests</a> to fulfill from the <a>request list</a>. Implementations must <a>process requests</a> from the <a>request list</a>, depending on the <a>mode</a>, against an I/O Transaction when the <a>active</a> flag is set to <code>true</code>.</p> 
+          </li>
+          <li><p>Once all read and write operations in the <a>request list</a> have resulted in <a href="#requestTerminate">termination</a>, the I/O Transaction is considered <dfn id="closed">closed</dfn>. An <a>I/O Transaction</a> can also be forcibly <a href="#closed">closed</a> through user action, such as window closure; in this case, it must NOT be <a>active</a> and must NOT handle further <a href="#requestIO">requests</a>.</p>
+          <div class="note"><p>A closed I/O Transaction has implications for <a>flushing</a> <a><code>FileHandleWritable</code></a> objects.</p></div>
+          </li>
+        </ol>
+        <p>Individual calls to <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size">read()</a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value">write()</a> made on a <a><code>FileHandle</code></a> or a <a><code>FileHandleWritable</code></a> are called <dfn id="requestIO">requests</dfn>. To <dfn id="processRequests">process requests</dfn> from the <a>request list</a>, the user agent must run the steps below:</p>
+        <ol>
+          <li><p><a href="#requestIO">Requests</a> must only placed in the <a>request list</a> if the <a>I/O Transaction</a> is <a>active</a>. If it is not <a>active</a>, the promise that initiated the <a href="#requestIO">request</a> -- either the <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a> call -- must be rejected with a <a href="#dfn-TransactionInactive"><code>TransactionInactive</code></a> <code>DOMException</code>.</p></li>
+          <li><p>After awaiting for the I/O Transaction to become <a>active</a> according to the <a>lifetime</a> rules, user agents must asynchronously run the next <a href="#requestIO">request</a> in the <a>request list</a> according to the steps for <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a>, at which point the request is removed from the <a>request list</a>.</p></li>
+          <li><p>A request must <dfn id="requestTerminate">terminate</dfn> in promise fulfilment, rejection, or cancellation, which must make the I/O Transaction <a>active</a>. Repeat the step above till all requests have <a href="#requestTerminate">terminated</a>. When an <a>I/O Transaction</a> is forcibly terminated, such as upon window closure, this also forces any request to terminate.</p>
+           <div class="issue"><p>1. The cancellation of an individual <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a> request depends on the use of the <code>CancelablePromise</code> type's <code>cancel()</code>, around which no consensus exist currently.</p>
+          <p>2. I/O Transactions that become <a>active</a> between callbacks under current design allow requests from the <a>request list</a> to start processing, and may allow fresh <a href="#requestIO">requests</a> to be added to the <a>request list</a>.</p> 
+          <p>3. The <a>request list</a> is created based on callback order generated during an <a>active</a> state, which may have determinism issues. </p>
+          <p>4. The "forced" closure scenario may necessitate an abort state for I/O Transactions, which this specification doesn't currently have.</p> 
+          </div> 
+          </li>
+        </ol>
+    
+    </section>
+    <section>
       <h2>FileHandle WebIDL</h2>
   <dl title='interface FileHandle' class='idl'>
    <dt>readonly attribute FileOpenMode mode</dt>
    <dd>
-    <p>TBD</p>
+    <p>Corresponds to the <a>mode</a> of the <a>I/O Transaction</a>. For a <code>FileHandleWritable</code>, on getting, the mode must be set to <code>readwrite</code>. For a <a>FileHandle</a>, on getting, the mode must be set to <code>readonly</code>.</p>
+    
   </dd>
   <dt>readonly attribute boolean active</dt>
   <dd>
-    <p>TBD</p>
+    <p>Corresponds to the <a>active</a> state of the <a>I/O Transaction</a> affiliated with this <code>FileHandle</code>. On getting, if <code>true</code>, implementations must allow calls to <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value">write()</a> to be placed in the <a>request list</a> for the <a>I/O Transaction</a> initiated for this object. On getting, if <code>false</code>, implementations must reject the <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value">write()</a> operation with a <code>TransactionInactiveError</code> <code>DOMException</code>. </p>
+      <div class="note"><p>Implementations must allow developers to check for <a>active</a> state of an <a>I/O Transaction</a> initiated by this object using this property.</p></div>
   </dd>
   <dt>attribute long long? offset</dt>
   <dd>
-    <p>TBD</p>
+    <p>Denotes the start position of a <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a> <a href="#requestIO">request</a> in terms of byte order in the byte sequence. On getting, a value of 0 must be interpreted as the start of the <a href="#fileConcept">file</a>, corresponding to byte order position 0. On getting, a value of <code>null</code> must be interpreted as the end of the <a href="#fileConcept">file</a> -- that is, one byte position past the last byte in the byte order. All other values must be interpreted as a byte order position from which a <a href="#requestIO">request</a> starts.</p>
   </dd>
   <dt>Promise&lt;File> getFile()</dt>
   <dd>
-    <p>TBD</p>
+    <p>When the <code>getFile()</code> method is called, user agents must run the steps below:</p>
+    <ol>
+      <li><p>Let <var>p</var> be a new promise. Run the following steps asynchronously.</p>
+      <ol>
+      <li><p>If this <a><code>FileHandle</code></a> has initiated a <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> and it is NOT <a>active</a> for this object's <a>scope file</a>, reject <var>p</var> with a <a href="#dfn-TransactionInactive"><code>TransactionInactive</code></a> <code>DOMException</code>.</p>
+      <div class="note"><p>If a <a><code>FileHandleWritable</code></a> is currently running the steps to <a href="#processRequests">process request</a>, the <a href="#fileConcept">file</a> must not be returned as a <a><code>File</code></a> till the <a><code>FileHandleWritable</code></a> is <a>active</a> again.</p></div>
+      </li>
+      <li><p>If any errors occur from the <a>Directory Promise Rejection Error Table</a>, reject <var>p</var> with the most appropriate error.</p></li>
+      <li><p>Otherwise resolve <var>p</var> with a new <a><code>File</code></a> <var>f</var> representing the <a>scope file</a> belonging to this object.</p>
+        <div class="note"><p><code>f.name</code> should be set to the name of the scope file; f.size to the size of the scope file. </p></div>
+      </li>
+    </ol></li>
+    <li>Return <var>p</var>.</li>
+    </ol>
   </dd>
   <dt>CancelablePromise&lt;ArrayBuffer> read(unsigned long long size) </dt>
   <dd>
-    <p>TBD</p>
-  </dd>
-  <dt>void cancel()</dt>
-  <dd>
-    <p>TBD</p>
+    <p>When the <code>read(size)</code> method is called, the user agent must run the steps below:</p>
+    <ol>
+      <li>Let <var>p</var> be a new promise. Run the following steps asynchronously:
+       <ol>
+        <li><p>If the I/O Transaction is not <a>active</a>, reject <var>p</var> with a <code>TransactionInactive</code> <code>DOMException</code>.</p></li>
+        <li><p>If <a href="#widl-FileHandle-offset"><code>offset</code></a> is <code>null</code>, reject <var>p</var> with an <a href="#dfn-InvalidStateError"><code>InvalidStateError</code></a> <code>DOMException</code>.</p></li>
+        <li><p>Otherwise, once the <a>lifetime</a> conditions for the <a>I/O Transaction</a> are met, run the following substeps:</p>
+          <div class="note"><p>This read <a href="#requestIO">request</a> is being <a href="#processRequests">processed</a> from the <a>request list</a>.</p></div>
+          <ol>
+            <li><p><a href="#dfn-startTransaction">Start</a> the I/O Transaction and set this object's <a href="#widl-FileHandle-active"><code>active</code> to <code>false</code>.</p>
+            <div class="note"><p>The <a>I/O Transaction</a> now is no longer <a>active</a>.</p></div>  
+            </li>
+            <li><p>Let <var>b</var> be a byte position pointer into the <a>scope file</a>. Advance <var>b</var> to the byte order position at <a href="#widl-FileHandle-offset"><code>offset</code></a>.</p></li>
+            <li><p>Starting with the byte at <var>b</var>, perform a <a href="#readOperation">read operation</a> with the synchronous flag unset on the <a>scope file</a>, stopping after reading <code>size</code> total bytes. Advance <var>b</var> with each byte read. If any errors occur when performing the <a href="#readOperation">read operation</a>, reject <var>p</var> with the error that corresponds to the <a href="#terminationReason">termination reason</a>.</p></li>
+            
+            <li><p>Resolve <var>p</var> with a new <code>ArrayBuffer</code> set to the <a href="#bodyFileAPI">body</a> returned by the <a href="#readOperation">read operation</a> and set this object's <a href="#widl-FileHandle-active"><code>active</code> to <code>true</code>.</p>
+             <div class="note"><p>The <a>I/O Transaction</a> is now <a>active</a> again.</p></div>  
+            </li>
+          </ol>
+        </li>
+       </ol> 
+      </li>
+      <li><p>If no errors have occured, set <a href="#widl-FileHandle-offset"><code>offset</code></a> to the byte order position that is at <var>b</var>+1.</p>
+            <div class="note"><p>The implementation must set <code>offset</code> to the very next byte available to a subsequent <a href="#readOperation">read operation</a>, which will start at that value of <code>offset</code> as byte order position.</p></div>
+            </li>
+      <li>Return <var>p</var>.</li>
+    </ol>
+    <dl class="parameters">
+     <dt>unsigned long long size</dt>
+     <dd><p>The total number of bytes to be read. If <code>size</code> > the total size of the <a>scope file</a>, implementations must set <code>size</code> to be the size of the <a>scope file</a>.</p></dd> 
+
+    </dl>
   </dd>
     </dl>
   </section>
@@ -802,17 +926,79 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
 <section>
 <h2>The FileHandleWritable Interface</h2>
 <section>
+<h3>Writing to Files and Flushing</h3>
+<p><a><code>FileHandleWritable</code></a> objects support the same features as a <a><code>FileHandle</code></a>, but in addition allow write <a href="#requestIO">requests</a> on a <a>scope file</a> using a <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a>. A single write <a href="#requestIO">request</a> is a <dfn id="writeOperation">write operation</dfn>, which appends bytes to a byte sequence -- that is, the <a>scope file</a> -- and writes them to disk; a write operation is the byte appending variant of <a href="#addToDirectoryTree">adding to the Directory Tree</a> and incurs the same potential errors and quota limitations. </p>
+<p>A <dfn>flushing</dfn> <a><code>FileHandleWritable</code></a> flushes the OS cache when the <a>I/O Transaction</a> is <a href="#closed">closed</a>. A <dfn>non-flushing</dfn> <a><code>FileHandleWritable</code></a> does NOT flush the OS cache. </p>
+<p>The <dfn>closure steps</dfn> for a <a><code>FileHandle</code></a> and <a><code>FileHandleWritable</code></a> occur when the <a><code>FileHandle</code></a> or <a><code>FileHandleWritable</code></a> is <a href="#closed">closed</a>, and must be as below:</p>
+<ol>
+  <li><p>The I/O Transaction must not be <a>active</a>.</p>
+  <div class="note"><p>I/O Transactions that are <a href="#closed">closed</a> have <a href="#processRequests">processed</a> all <a href="#requestIO">requests</a> in the <a>request list</a>, and so must have no pending <a href="#requestIO">requests</a>, nor can any new <a href="#requestIO">request</a> be made against them.</p></div>
+  </li>
+  <li><p>For a <a>flushing</a> <a><code>FileHandleWritable</code></a>, flush the OS Cache before writing to disk. If the OS Cache cannot be flushed, user agents should write an error to the console.</p></li>
+
+</ol>
+<div class="note"><p>This is a potentially expensive operation, and is coined from within the <a href="#widl-Directory-openWrite-Promise-FileHandleWritable--DOMString-File-path-OpenWriteOptions-options"><code>openWrite</code></a> call that initiates the <a>I/O Transaction</a> associated with this <a><code>FileHandleWritable</code></a>. Implementations may issue messages to users, particularly on browser close, if a <a>flushing</a> operation is underway.</p></div>  
+</section>
+<section>
   <h2>FileHandleWritable WebIDL</h2>
  <dl title='interface FileHandleWritable : FileHandle' class='idl'>
 <dt>CancelablePromise&lt;void> write((DOMString or ArrayBuffer or
 ArrayBufferView or Blob) value)</dt>
 <dd>
-  
-    <p>TBD</p>
+    <p>When the <code>write(value)</code> method is called, the user agent must run the steps below:</p>
+    <ol>
+       <li>Let <var>p</var> be a new promise. Run the following steps asynchronously:
+       <ol>
+        <li><p>If the I/O Transaction is not <a>active</a>, reject <var>p</var> with a <code>TransactionInactive</code> <code>DOMException</code>.</p></li>
+        
+        <li><p>Otherwise, once the <a>lifetime</a> conditions for the <a>I/O Transaction</a> are met, run the following substeps:</p>
+          <div class="note"><p>This write <a href="#requestIO">request</a> is being <a href="#processRequests">processed</a> from the <a>request list</a>.</p></div>
+          <ol>
+            <li><p><a href="#dfn-startTransaction">Start</a> the I/O Transaction and set this object's <a href="#widl-FileHandle-active"><code>active</code> to <code>false</code>.</p>
+            <div class="note"><p>The <a>I/O Transaction</a> now is no longer <a>active</a>.</p></div>  </li>
+            <li><p>Let <var>b</var> be a byte position pointer into the <a>scope file</a>. Advance <var>b</var> to the byte order position at <a href="#widl-FileHandle-offset"><code>offset</code></a>. If <a href="#widl-FileHandle-offset"><code>offset</code></a> is <code>null</code>, advance <var>b</var> to the end of the <a>scope file</a> -- that is, one past the last byte in the <a>scope file</a>.</p></li>
+            <li><p>Convert <code>value</code> to a byte sequence. If <code>value</code> cannot be converted to a byte sequence, reject <var>p</var> with an <code>InvalidStateError</code>.</p></li>
+            <li><p>Starting with the byte at <var>b</var>, perform a <a href="#writeOperation">write operation</a> on the <a>scope file</a>, stopping after writing the total number of bytes in <code>value</code> OR to the <code>size</code> set by a fulfilled <a href="#widl-FileHandleWritable-setSize-Promise-void--unsigned-long-long-size"><code>setSize</code></a> call, whichever is less. Advance <var>b</var> with each byte written. If any errors occur when performing the <a href="#writeOperation">write operation</a>, reject <var>p</var> with the error that corresponds to the most appropriate error from the <a>Directory Promise Rejection Error Table</a> and set this object's <a href="#widl-FileHandle-active"><code>active</code> to <code>true</code>.</p>
+            <div class="note"><p>If <a href="#widl-FileHandleWritable-setSize-Promise-void--unsigned-long-long-size"><code>setSize()</code></a> is rejected, the <a href="#writeOperation">write operation</a> must also be rejected.</p></div>
+            <div class="note"><p>The <a>I/O Transaction</a> is now <a>active</a> again.</p></div>  
+            </li>
+            
+            <li><p>Otherwise, if no errors have occured, resolve <var>p</var> with undefined and set this object's <a href="#widl-FileHandle-active"><code>active</code> to <code>true</code>.</p>
+            <div class="note"><p>The <a>I/O Transaction</a> is now <a>active</a> again.</p></div> 
+            </li>
+          </ol>
+        </li>
+       </ol> 
+      </li>
+      <li><p>If no errors have occured, set <a href="#widl-FileHandle-offset"><code>offset</code></a> to the byte order position that is at <var>b</var>+1, unless <a href="#widl-FileHandle-offset"><code>offset</code></a> is <code>null</code>. If <a href="#widl-FileHandle-offset"><code>offset</code></a> is <code>null</code>, let <a href="#widl-FileHandle-offset"><code>offset</code></a> remain null.</p>
+            <div class="note"><p>The implementation must set <code>offset</code> to the very next byte available to a subsequent <a href="#writeOperation">write operation</a>, which will start at that value of <code>offset</code> as byte order position. If <code>null</code>, implementations must treat this as the end of the file.</p></div>
+            </li>
+      <li>Return <var>p</var>.</li>
+    </ol>
   </dd>
  <dt>Promise&lt;void> setSize(optional unsigned long long size)</dt>
  <dd>
-    <p>TBD</p>
+    <p>When the <code>setSize(size)</code> method is called, the user agent must run the steps below:</p>
+    <ol>
+      <li><p>Let <var>p</var> be a new promise. Run the following steps asynchronously:</p>
+      <ol>
+        <li><p>If this I/O Transaction is not <a>active</a>, reject <var>p</var> with a <a href="#dfn-TransactionInactiveError"><code>TransactionInactiveError</code></a>.</p>
+        <div class="note"><p><code>setSize()</code> is not allowed on an I/O Transaction that is not <a>active</a>.</p></div>
+        </li>
+        <li><p>If the value of <code>size</code> causes a storage quota error, reject <var>p</var> with a <a href="#dfn-QuotaExceededError"><code>QuotaExceededError</code></a>.</p></li>
+        <li><p>Otherwise, the user agent must allocate the bytes specified by <code>size</code> in the <a>Directory Tree</a>, and resolve <var>p</var> with undefined.</p>
+
+        </li>
+      </ol>
+    </li>
+    <li>Return <var>p</var>.</li>
+    </ol>
+    <dl class="parameters">
+      <dt>optional unsigned long long size</dt>
+     <dd><p>The total number of bytes to be allocated for <a href="#writeOperation">write operations</a>. The value of <code>size</code> may be greater than the size of the total size of the <a>scope file</a>. If the optional <code>size</code> parameter is NOT included, user agents must allocate storage in the <a>Directory Tree</a> equivalent to the total number of bytes in the <a>scope file</a>. This argument may be used to truncate the size of a <a href="#writeOperation">write operation</a>; implementations should allow it to both truncate and increase file size.</p>
+      <div class="note"><p>It is not necessary to <code>setSize()</code> to write beyond the end of a scope file; user agents must permit writing beyond the end of a <a>scope file</a>, unless quota error(s) are generated.</p></div>
+     </dd> 
+    </dl>
   </dd>
 </dl>  
 </section>
@@ -822,7 +1008,7 @@ ArrayBufferView or Blob) value)</dt>
 <dl title="dictionary CreateFileOptions" class="idl">
   <dt>CreateIfExistsMode ifExists = "fail"</dt>
    <dd>
-    <p>This enum value indicates whether to write over a pre-existing file or to fail the attempt to write over a pre-existing file.</p>
+    <p>This enum value indicates whether to write over a pre-existing <a href="#fileConcept">file</a> or to fail the attempt to write over a pre-existing <a href="#fileConcept">file</a>.</p>
   </dd>
   <dt>(DOMString or Blob or ArrayBuffer or ArrayBufferView) data</dt>
     <dd><p></p></dd>
@@ -849,7 +1035,7 @@ ArrayBufferView or Blob) value)</dt>
   </dd>
 <dt>fail</dt>
 <dd>
-    <p>This is the default; by default, a file cannot be replaced.</p>
+    <p>This is the default; by default, a <a href="#fileConcept">file</a> cannot be replaced.</p>
   </dd>  
 </dl>
 <dl title="enum OpenIfExistsMode" class="idl">
@@ -897,7 +1083,7 @@ ArrayBufferView or Blob) value)</dt>
 </section>
 <section>
 <h2>FileSystem URLs</h2>
-<p></p>
+<p>When this specification says to follow the <dfn>URL generation steps</dfn> for a <a><code>File</code></a> object, the following steps must be run: TBD.</p>
 </section>
 <section>
   <h2>Acknowledgements</h2>
