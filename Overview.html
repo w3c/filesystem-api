@@ -219,14 +219,15 @@
     <p>The term <dfn id="origin">origin</dfn> is used as defined by the Web Origin Specification [[!ORIGIN]].</p>
     <p>The term <dfn id="worker"><code>worker</code></dfn> is defined by the WebWorkers specification [[!WEBWORKERS]].</p>
     <p>The terms <dfn>context object</dfn>, <dfn id="strictly-split-a-string">strictly split a string</dfn>, and <dfn id="document"><code>document</code></dfn> are defined by the HTML specification [[!HTML]].</p>
-    <p>Algorithmic steps in this specification <dfn>terminate</dfn> when a promise is either rejected or fulfilled, or when the steps are explicitly terminated outside of promise fulfilment or rejection.</p>
+    <p>Algorithmic steps in this specification <dfn>return</dfn> when a promise is either rejected, fulfilled, or canceled, or when the steps are explicitly terminated outside of promise fulfilment or rejection.</p>
+    <p>When this specification refers to the <dfn>OS Cache</dfn>, it means any underlying operating system buffers or any underlying software system buffers which the <a href="#dfn-conforming-implementation">conformance class</a> might rely on before transferring data or "flushing" it to disk; the term includes kernel buffers, buffer "cache pages" or modified in-core data, typically transferred to disk within deltas of time. The term <dfn id="flushTheCache">flushing the OS Cache</dfn> refers to a forced flushing from the <a>OS Cache</a> to disk initiated by software as an additional data reliability and persistence maneuver outside of system defaults.</p>
 
 </section>
 <section>
   <h2>Model</h2>
   <section>
     <h3>Directory, File, Root, and Path</h3>
-  <p>A <dfn id="directoryConcept">directory</dfn> is a logical organizing storage unit with a distinct <dfn>name</dfn> which contains <a href="#fileConcept">files</a> and/or one or more <dfn id="subdirectoryConcept">subdirectory</dfn> units (which are themselves <a href="#directoryConcept">directory</a> units). The <a href="#directoryConcept">directory</a> is organized by a hierarchical containment structure, which can also be represented by a string, called a <dfn>path</dfn>; the <a>path</a> string uses the U+002F SOLIDUS character ("/") to denote directories within the <a>Directory Tree</a>. A <dfn id="fileConcept">file</dfn> is <em>durable binary data</em> that can persist through storage, and can be programmatically manipulated as defined in the [[!FileAPI]]; this specification introduces two new primitives for handling <a href="#fileConcept">file</a>s, namely the <a><code>FileHandle</code></a> and the <a><code>FileHandleWritable</code></a>. <a href="#fileConcept">Files</a>, like <a href="#directoryConcept">directories</a>, have distinct <a>name</a>s which identify them on the <a>Directory Tree</a>.</p>
+  <p>A <dfn id="directoryConcept">directory</dfn> is a logical organizing storage unit with a distinct <dfn>name</dfn> which contains <a href="#fileConcept">files</a> and/or one or more <dfn id="subdirectoryConcept">subdirectory</dfn> units (which are themselves <a href="#directoryConcept">directory</a> units). The <a href="#directoryConcept">directory</a> is organized by a hierarchical containment structure, which can also be represented by a string, called a <dfn>path</dfn>; the <a>path</a> string uses the U+002F SOLIDUS character ("/") to denote directories within the <a>Directory Tree</a>. A <dfn id="fileConcept">file</dfn> is <em>durable binary data</em> that can persist through storage, and can be programmatically manipulated as defined in the [[!FileAPI]]; this specification introduces two new primitives for handling <a href="#fileConcept">file</a>s, namely the <a><code>FileHandle</code></a> and the <a><code>FileHandleWritable</code></a>. <a href="#fileConcept">Files</a>, like <a href="#directoryConcept">directories</a>, have distinct <a>name</a>s which identify them on the <a>Directory Tree</a>. <a href="#fileConcept">Files</a> are treated as byte sequences for certain operations in this specification.</p>
     <p> The top-most containing <a href="#directoryConcept">directory</a>, which contains all <a href="#directoryConcept">directories</a> and <a href="#fileConcept">files</a>, if any exist, is called the <dfn>root</dfn> <a href="#directoryConcept">directory</a>, and has the following properties:</p> 
     <ul>
       <li><p>It is not contained by any other <a href="#directoryConcept">directory</a> in the <a>Directory Tree</a>; it contains all others.</p></li>
@@ -375,7 +376,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
     </section>
     <section id="rejectionDirectoryPromise">
       <h2>Directory Promise Rejection Error Table</h2>
-      <p>Rejection of <a><code>Directory</code></a>-creation promises and promises with <a>I/O Transactions</a> occur with the errors and reasons shown in the <dfn>Directory Promise Rejection Error Table</dfn> below.</p>
+      <p>Rejection of <a><code>Directory</code></a>-creation promises and promises with <a>I/O Transaction</a>s occur with the errors and reasons shown in the <dfn>Directory Promise Rejection Error Table</dfn> below.</p>
         <table><thead><tr><th>Type
        </th><th>Description and Failure Reason
      </th></tr></thead><tbody><tr><td><dfn id="dfn-QuotaExceededError" title="QuotaExceededError"><code>QuotaExceededError</code></dfn>
@@ -805,7 +806,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
       <p>
         The <a><code>FileHandle</code></a> family of objects includes the <a><code>FileHandle</code></a> object and the <a><code>FileHandleWritable</code></a> object, and are references to individual <a href="#fileConcept">files</a> in the <a>Directory Tree</a> or to <a><code>File</code></a> objects not yet written to the <a>Directory Tree</a>. Since a <a><code>FileHandleWritable</code></a> inherits from a <a><code>FileHandle</code></a>, this specification refers to both as <a><code>FileHandle</code></a>s. Each <a><code>FileHandle</code></a> is said to have a single <dfn>scope file</dfn> which is the <a href="#fileConcept">file</a> in the <a>Directory Tree</a> that the <a><code>FileHandle</code></a> object refers to, or is the byte stream that will be added to the <a>Directory Tree</a>. A <a><code>FileHandle</code></a> object can be used to read a file, and a <a><code>FileHandleWritable</code></a> object can be used to both read from <em>and</em> write to a <a>scope file</a>.</p> 
 
-        <p>Each <a><code>FileHandle</code></a> initiates and terminates an <dfn>I/O Transaction</dfn>, which reads or writes to a given <a>scope file</a>, depending on <a>mode</a>.  Each individual read or write operation on an I/O Transaction is called a <a href="#requestIO">request</a>. I/O Transactions are short-lived and allow for multiple atomic read or write <a href="#requestIO">requests</a>. Each I/O Transaction has a <a>mode</a> which lasts for the entirety of its <a>lifetime</a>. Each <a>I/O Transaction</a> has an <dfn>active</dfn> flag; when set, it means the <a>I/O Transaction</a> can start <a href="#requestIO">requests</a> on the <a>scope file</a>, depending on its <a>mode</a>. I/O Transactions must maintain a <dfn>request list</dfn> of <a href="#requestIO">request</a>s, which are put in the <a>request list</a> in order of creation. </p>
+        <p>Each <a><code>FileHandle</code></a> initiates and terminates an <dfn>I/O Transaction</dfn>, which reads or writes to a given <a>scope file</a>, depending on <a>mode</a>.  Each individual read or write operation on an I/O Transaction is called a <a href="#requestIO">request</a>. I/O Transactions are short-lived and allow for multiple atomic read or write <a href="#requestIO">requests</a>. Each I/O Transaction has a <a>mode</a> which lasts for the entirety of its <a>lifetime</a>. Each <a>I/O Transaction</a> has an <dfn>active</dfn> flag; when set, it means the <a>I/O Transaction</a> can start <a href="#requestIO">requests</a> on the <a>scope file</a>, depending on its <a>mode</a>. I/O Transactions must maintain a <dfn>request list</dfn> of <a href="#requestIO">request</a>s, which are put in the <a>request list</a> in order of creation according to the callback sequence. </p>
 
         <p>When <a>active</a>, an I/O Transaction can read or write data, depending on <a>mode</a>. </p>
         
@@ -833,7 +834,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
           </li>
           <li><p>Once a read or write <a href="#requestIO">request</a> is <a href="#requestTerminate">terminated</a>, the <a>I/O Transaction</a> must become <a>active</a> again if it has further <a href="#requestIO">requests</a> to fulfill from the <a>request list</a>. Implementations must <a>process requests</a> from the <a>request list</a>, depending on the <a>mode</a>, against an I/O Transaction when the <a>active</a> flag is set to <code>true</code>.</p> 
           </li>
-          <li><p>Once all read and write operations in the <a>request list</a> have resulted in <a href="#requestTerminate">termination</a>, the I/O Transaction is considered <dfn id="closed">closed</dfn>. An <a>I/O Transaction</a> can also be forcibly <a href="#closed">closed</a> through user action, such as window closure; in this case, it must NOT be <a>active</a> and must NOT handle further <a href="#requestIO">requests</a>.</p>
+          <li><p>Once all read and write operations in the <a>request list</a> have resulted in <a href="#requestTerminate">termination</a>, the I/O Transaction is considered <dfn id="closed">closed</dfn> and user agents must run the <a>closure steps</a>. An <a>I/O Transaction</a> can also be forcibly <a href="#closed">closed</a> through user action, such as window closure; in this case, it must NOT be <a>active</a> and must NOT handle further <a href="#requestIO">requests</a>.</p>
           <div class="note"><p>A closed I/O Transaction has implications for <a>flushing</a> <a><code>FileHandleWritable</code></a> objects.</p></div>
           </li>
         </ol>
@@ -841,11 +842,9 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
         <ol>
           <li><p><a href="#requestIO">Requests</a> must only placed in the <a>request list</a> if the <a>I/O Transaction</a> is <a>active</a>. If it is not <a>active</a>, the promise that initiated the <a href="#requestIO">request</a> -- either the <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a> call -- must be rejected with a <a href="#dfn-TransactionInactive"><code>TransactionInactive</code></a> <code>DOMException</code>.</p></li>
           <li><p>After awaiting for the I/O Transaction to become <a>active</a> according to the <a>lifetime</a> rules, user agents must asynchronously run the next <a href="#requestIO">request</a> in the <a>request list</a> according to the steps for <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a>, at which point the request is removed from the <a>request list</a>.</p></li>
-          <li><p>A request must <dfn id="requestTerminate">terminate</dfn> in promise fulfilment, rejection, or cancellation, which must make the I/O Transaction <a>active</a>. Repeat the step above till all requests have <a href="#requestTerminate">terminated</a>. When an <a>I/O Transaction</a> is forcibly terminated, such as upon window closure, this also forces any request to terminate.</p>
-           <div class="issue"><p>1. The cancellation of an individual <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a> request depends on the use of the <code>CancelablePromise</code> type's <code>cancel()</code>, around which no consensus exist currently.</p>
-          <p>2. I/O Transactions that become <a>active</a> between callbacks under current design allow requests from the <a>request list</a> to start processing, and may allow fresh <a href="#requestIO">requests</a> to be added to the <a>request list</a>.</p> 
-          <p>3. The <a>request list</a> is created based on callback order generated during an <a>active</a> state, which may have determinism issues. </p>
-          <p>4. The "forced" closure scenario may necessitate an abort state for I/O Transactions, which this specification doesn't currently have.</p> 
+          <li><p>A request must <dfn id="requestTerminate">terminate</dfn> when the <a href="#requestIO">request</a> <a>return</a>s; that is, in promise fulfilment, rejection, or cancellation, which must make the I/O Transaction <a>active</a>. Repeat the step above till all requests have <a href="#requestTerminate">terminated</a>. When an <a>I/O Transaction</a> is forcibly terminated, such as upon window closure, this also forces any request to terminate.</p>
+           <div class="issue"><p>1. The cancellation of an individual <a href="#widl-FileHandle-read-CancelablePromise-ArrayBuffer--unsigned-long-long-size"><code>read()</code></a> or <a href="#widl-FileHandleWritable-write-CancelablePromise-void--DOMString-ArrayBuffer-ArrayBufferView-Blob-value"><code>write()</code></a> <a href="#requestIO">request</a> depends on the use of the <code>CancelablePromise</code> type's <code>cancel()</code>, around which no consensus exist currently.</p>
+          <p>2. The "forced" closure scenario may necessitate an abort state for I/O Transactions, which this specification doesn't currently have.</p> 
           </div> 
           </li>
         </ol>
@@ -928,16 +927,21 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
 <section>
 <h3>Writing to Files and Flushing</h3>
 <p><a><code>FileHandleWritable</code></a> objects support the same features as a <a><code>FileHandle</code></a>, but in addition allow write <a href="#requestIO">requests</a> on a <a>scope file</a> using a <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a>. A single write <a href="#requestIO">request</a> is a <dfn id="writeOperation">write operation</dfn>, which appends bytes to a byte sequence -- that is, the <a>scope file</a> -- and writes them to disk; a write operation is the byte appending variant of <a href="#addToDirectoryTree">adding to the Directory Tree</a> and incurs the same potential errors and quota limitations. </p>
-<p>A <dfn>flushing</dfn> <a><code>FileHandleWritable</code></a> flushes the OS cache when the <a>I/O Transaction</a> is <a href="#closed">closed</a>. A <dfn>non-flushing</dfn> <a><code>FileHandleWritable</code></a> does NOT flush the OS cache. </p>
+<p>A <dfn>flushing</dfn> <a><code>FileHandleWritable</code></a> flushes the <a>OS Cache</a> when the <a>I/O Transaction</a> is <a href="#closed">closed</a>. A <dfn>non-flushing</dfn> <a><code>FileHandleWritable</code></a> does NOT flush the <a>OS Cache</a>. </p>
 <p>The <dfn>closure steps</dfn> for a <a><code>FileHandle</code></a> and <a><code>FileHandleWritable</code></a> occur when the <a><code>FileHandle</code></a> or <a><code>FileHandleWritable</code></a> is <a href="#closed">closed</a>, and must be as below:</p>
 <ol>
   <li><p>The I/O Transaction must not be <a>active</a>.</p>
-  <div class="note"><p>I/O Transactions that are <a href="#closed">closed</a> have <a href="#processRequests">processed</a> all <a href="#requestIO">requests</a> in the <a>request list</a>, and so must have no pending <a href="#requestIO">requests</a>, nor can any new <a href="#requestIO">request</a> be made against them.</p></div>
+  <div class="note"><p>I/O Transactions that are <a href="#closed">closed</a> have <a href="#processRequests">processed</a> all <a href="#requestIO">requests</a> in the <a>request list</a>, meaning that the end of the callback sequence has been reached; they must have no pending <a href="#requestIO">requests</a>, nor can any new <a href="#requestIO">request</a> be made against them.</p></div>
   </li>
-  <li><p>For a <a>flushing</a> <a><code>FileHandleWritable</code></a>, flush the OS Cache before writing to disk. If the OS Cache cannot be flushed, user agents should write an error to the console.</p></li>
-
+  <li><p>For a <a>flushing</a> <a><code>FileHandleWritable</code></a>, <a href="#flushTheCache">flush the OS Cache</a>. If the <a>OS Cache</a> cannot be flushed, user agents should write an error to the console.</p>
+  <div class="issue"><p>No promise rejection occurs on failed flush, since this occurs outside of the callback sequence; one could throw here, but that isn't a best practice for promise-based APIs. In practice, a failed flush might not be commonplace, so writing to the console might be ok for failure signaling.</p></div>
+  <div class="note"><p>This is a potentially expensive operation, and is coined from within the <a href="#widl-Directory-openWrite-Promise-FileHandleWritable--DOMString-File-path-OpenWriteOptions-options"><code>openWrite</code></a> call that initiates the <a>I/O Transaction</a> associated with this <a><code>FileHandleWritable</code></a>. Implementations may issue messages to users, particularly on browser close, if a <a>flushing</a> operation is underway, including writing to console.</p></div> 
+  </li>
+  <li><p>Implementations must not re-open a <a href="#closed">closed</a> <a><code>FileHandle</code></a> object.</p>
+  <div class="note"><p>A corollary to this is that implementations may garbage collect a closed <a><code>FileHandle</code></a> object, but this is an implementation detail.</p></div>  
+  </li>
 </ol>
-<div class="note"><p>This is a potentially expensive operation, and is coined from within the <a href="#widl-Directory-openWrite-Promise-FileHandleWritable--DOMString-File-path-OpenWriteOptions-options"><code>openWrite</code></a> call that initiates the <a>I/O Transaction</a> associated with this <a><code>FileHandleWritable</code></a>. Implementations may issue messages to users, particularly on browser close, if a <a>flushing</a> operation is underway.</p></div>  
+ 
 </section>
 <section>
   <h2>FileHandleWritable WebIDL</h2>
@@ -1011,20 +1015,20 @@ ArrayBufferView or Blob) value)</dt>
     <p>This enum value indicates whether to write over a pre-existing <a href="#fileConcept">file</a> or to fail the attempt to write over a pre-existing <a href="#fileConcept">file</a>.</p>
   </dd>
   <dt>(DOMString or Blob or ArrayBuffer or ArrayBufferView) data</dt>
-    <dd><p></p></dd>
+    <dd><p>This is the raw data of the file.</p></dd>
 </dl>
 <dl title="dictionary OpenWriteOptions" class="idl">
  <dt>OpenIfNotExistsMode ifNotExists = "create"</dt>
  <dd>
-    <p>TBD</p>
+    <p>This value, if provided, means an implementation must create a <a>scope file</a> if it does not exist in the <a>Directory Tree</a>.</p>
   </dd>
   <dt>OpenIfExistsMode ifExists = "open"</dt>
   <dd>
-    <p>TBD</p>
+    <p>This value, if provided and set by default, means an implementation must open a <a>scope file</a> that exists in the <a>Directory Tree</a> for a <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> associated with the <a><code>FileHandleWritable</code></a>.</p>
   </dd>
   <dt>boolean Flush = false</dt>
   <dd>
-    <p>TBD</p>
+    <p>This value, if set outside the default to <code>true</code>, creates a <a>flushing</a> <a><code>FileHandleWritable</code></a>, which has specific <a>closure steps</a>; .</p>
   </dd>
 </dl>
 
@@ -1041,49 +1045,50 @@ ArrayBufferView or Blob) value)</dt>
 <dl title="enum OpenIfExistsMode" class="idl">
   <dt>open</dt>
   <dd>
-    <p>TBD</p>
+     <p>This value, if provided and set by default in the <a><code>OpenWriteOptions</code></a> dictionary, means an implementation must open a <a>scope file</a> that exists in the <a>Directory Tree</a> for a <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a> associated with the <a><code>FileHandleWritable</code></a>.</p>
   </dd>
   <dt>fail</dt>
   <dd>
-    <p>TBD</p>
+    <p>This value means the operation to open an existing file should <a>return</a> in rejection.</p>
   </dd>
 </dl>
 <dl title="enum OpenIfNotExistsMode" class="idl">
   <dt>create</dt>
   <dd>
-    <p>TBD</p>
+    <p>If a file does not exist, this value means it should be created.</p>
   </dd>
   <dt>fail</dt>
   <dd>
-    <p>TBD</p>
+    <p>This value means the operation to open a non-existing file should <a>return</a> with rejection.</p>
   </dd>
 </dl>
 
 <dl title="dictionary DestinationDict" class="idl">
   <dt>Directory dir</dt>
   <dd>
-    <p>TBD</p>
+    <p>This value must be a <a><code>Directory</code></a> object signifying the <a href="directoryConcept">directory</a> for the <a href="#widl-Directory-move-CancelablePromise-void--DOMString-File-Directory-path-DOMString-Directory-DestinationDict-dest"><code>move()</code></a> method, which may include a <a href="#renamingOperation">renaming</a> operation.</p>
   </dd>
   <dt>DOMString name</dt>
   <dd>
-    <p>TBD</p>
+    <p>The name of the <a href="#directoryConcept">directory</a>; normative conditions exist as part of the <a href="#widl-Directory-move-CancelablePromise-void--DOMString-File-Directory-path-DOMString-Directory-DestinationDict-dest"><code>move()</code></a> method. </p>
   </dd>
 </dl>
 
 <dl title="enum FileOpenMode" class="idl">
   <dt>readonly</dt>
   <dd>
-    <p>TBD</p>
+    <p>This must only be associated with a <a><code>FileHandle</code></a>, and indicates a <a href="readonlyTransaction">readonly</a> <a>I/O Transaction</a>.</p>
   </dd>
   <dt>readwrite</dt>
   <dd>
-    <p>TBD</p>
+    <p>This must only be associated with a <a><code>FileHandleWritable</code></a>, and indicates a <a href="#readwriteTransaction">readwrite</a> <a>I/O Transaction</a>.</p>
   </dd>
 </dl>
 </section>
 <section>
 <h2>FileSystem URLs</h2>
 <p>When this specification says to follow the <dfn>URL generation steps</dfn> for a <a><code>File</code></a> object, the following steps must be run: TBD.</p>
+<div class="issue"><p></p></div>
 </section>
 <section>
   <h2>Acknowledgements</h2>
