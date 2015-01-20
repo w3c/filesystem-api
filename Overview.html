@@ -215,8 +215,9 @@
   <section id="terminology">
     <h2>Terminology</h2>
     <p>The terms <dfn id="Blob">Blob</dfn>, <dfn id="File">File</dfn>, <dfn>Unix Epoch</dfn>, <dfn>File Constructor Steps</dfn>, <dfn id="readOperation">read operation</dfn>, <dfn id="terminationReason">termination reason</dfn>, and <dfn id="bodyFileAPI">body</dfn> are as defined by the [[!FileAPI]] specification.</p>
-    <p>The terms <dfn id="scheme">scheme</dfn>, <dfn id="scheme-data">scheme data</dfn>, and <dfn id="URL">URL</dfn> are as defined by the [[!URL]] specification.</p>
-    <p>The term <dfn id="origin">origin</dfn> is used as defined by the Web Origin Specification [[!ORIGIN]].</p>
+    <p>The terms <dfn id="scheme">scheme</dfn>, <dfn id="scheme-data">scheme data</dfn>, <dfn>fragment</dfn>  and <dfn id="URL">URL</dfn> are as defined by the [[!URL]] specification.</p>
+    <p>The terms <dfn id="requestURL">request</dfn>, <dfn id="responseURL">response</dfn>, and <dfn id="crossoriginURL">cross-origin request</dfn> are as defined in the WHATWG Fetch Specification [[!Fetch]].</p>
+    <p>The term <dfn>origin</dfn> is used as defined by the Web Origin Specification [[!ORIGIN]].</p>
     <p>The term <dfn id="worker"><code>worker</code></dfn> is defined by the WebWorkers specification [[!WEBWORKERS]].</p>
     <p>The terms <dfn>context object</dfn>, <dfn id="strictly-split-a-string">strictly split a string</dfn>, and <dfn id="document"><code>document</code></dfn> are defined by the HTML specification [[!HTML]].</p>
     <p>Algorithmic steps in this specification <dfn>return</dfn> when a promise is either rejected, fulfilled, or canceled, or when the steps are explicitly terminated outside of promise fulfilment or rejection.</p>
@@ -325,7 +326,11 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
   <dl title='partial interface URL' class='idl'>
   <dt>static DOMString? getFileSystemURL(File file)</dt>
   <dd>
-    <p>This method must return a <a>FileSystem URL</a> according to the <a>URL generation steps</a> for the <a><code>File</code></a> argument.</p>
+    <p>When the <code>getFileSystemURL(file)</code> method is called, the user agent must run the steps below:</p>
+    <ol>
+      <li><p>Run the <a>URL generation steps</a> for <code>file</code>. If they return with failure, return <code>null</code>.</p></li>
+      <li><p>Otherwise, return the FileSystem URL returned by the <a>URL generation steps</a>.</p></li>
+    </ol>
     
   </dd>
   </dl>
@@ -338,7 +343,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
       <h2>Origin of a Directory</h2>
       <p>The <a>origin</a> of a <a><code>Directory</code></a> is the same as the <a>origin</a> of the <a><code>document</code></a> or <a><code>worker</code></a>. Each <a>origin</a> has one <a><code>root</code></a> <a><code>Directory</code></a>.</p>
       <div class="note"><p>The <a>origin</a> of the <a>root</a> <a><code>Directory</code></a> is not affected by changes to <code>document.domain</code>.</p></div>
-      <div class="issue"><p>Origin may be redefined in terms of Script Realm; open bugs include <a href="https://www.w3.org/Bugs/Public/show_bug.cgi?id=27203">27203</a>, <a href="https://www.w3.org/Bugs/Public/show_bug.cgi?id=27204">27204</a>, and <a href="https://www.w3.org/Bugs/Public/show_bug.cgi?id=26603">26603</a>.</p></div>
+      
     </section>
     <section id="DirectoryPromise">
      <h2>Resolving or Rejecting a Directory-Creating Promise</h2> 
@@ -806,7 +811,7 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
       <p>
         The <a><code>FileHandle</code></a> family of objects includes the <a><code>FileHandle</code></a> object and the <a><code>FileHandleWritable</code></a> object, and are references to individual <a href="#fileConcept">files</a> in the <a>Directory Tree</a> or to <a><code>File</code></a> objects not yet written to the <a>Directory Tree</a>. Since a <a><code>FileHandleWritable</code></a> inherits from a <a><code>FileHandle</code></a>, this specification refers to both as <a><code>FileHandle</code></a>s. Each <a><code>FileHandle</code></a> is said to have a single <dfn>scope file</dfn> which is the <a href="#fileConcept">file</a> in the <a>Directory Tree</a> that the <a><code>FileHandle</code></a> object refers to, or is the byte stream that will be added to the <a>Directory Tree</a>. A <a><code>FileHandle</code></a> object can be used to read a file, and a <a><code>FileHandleWritable</code></a> object can be used to both read from <em>and</em> write to a <a>scope file</a>.</p> 
 
-        <p>Each <a><code>FileHandle</code></a> initiates and terminates an <dfn>I/O Transaction</dfn>, which reads or writes to a given <a>scope file</a>, depending on <a>mode</a>.  Each individual read or write operation on an I/O Transaction is called a <a href="#requestIO">request</a>. I/O Transactions are short-lived and allow for multiple atomic read or write <a href="#requestIO">requests</a>. Each I/O Transaction has a <a>mode</a> which lasts for the entirety of its <a>lifetime</a>. Each <a>I/O Transaction</a> has an <dfn>active</dfn> flag; when set, it means the <a>I/O Transaction</a> can start <a href="#requestIO">requests</a> on the <a>scope file</a>, depending on its <a>mode</a>. I/O Transactions must maintain a <dfn>request list</dfn> of <a href="#requestIO">request</a>s, which are put in the <a>request list</a> in order of creation according to the callback sequence. </p>
+        <p>Each <a><code>FileHandle</code></a> <a href="#initiateIO">initiates</a> and eventually <a href="#closed">closes</a> an <dfn>I/O Transaction</dfn>, which reads or writes to a given <a>scope file</a>, depending on <a>mode</a>.  Each individual read or write operation on an I/O Transaction is called a <a href="#requestIO">request</a>. I/O Transactions are short-lived and allow for multiple atomic read or write <a href="#requestIO">requests</a>. Each I/O Transaction has a <a>mode</a> which lasts for the entirety of its <a>lifetime</a>. Each <a>I/O Transaction</a> has an <dfn>active</dfn> flag; when set, it means the <a>I/O Transaction</a> can start <a href="#requestIO">requests</a> on the <a>scope file</a>, depending on its <a>mode</a>. I/O Transactions must maintain a <dfn>request list</dfn> of <a href="#requestIO">request</a>s, which are put in the <a>request list</a> in order of creation according to the callback sequence. </p>
 
         <p>When <a>active</a>, an I/O Transaction can read or write data, depending on <a>mode</a>. </p>
         
@@ -1087,12 +1092,89 @@ ArrayBufferView or Blob) value)</dt>
 </section>
 <section>
 <h2>FileSystem URLs</h2>
-<p>When this specification says to follow the <dfn>URL generation steps</dfn> for a <a><code>File</code></a> object, the following steps must be run: TBD.</p>
-<div class="issue"><p></p></div>
+<section>
+  <h3>Format and Origin of FileSystem URLs</h3>
+<p>A <dfn>FileSystem URL</dfn> must consist of the filesystem: <a href="#scheme">scheme</a> followed by <a href="#scheme-data">scheme data</a> which must consist of a string comprising the <a href="#originOfFileSystemURL">origin of the FileSystem URL</a>, and the <a>path from root</a> of the <a href="#fileConcept">file</a> resource in the <a>Directory Tree</a>. A <a>FileSystem URL</a> may contain an optional <a>fragment</a>.</p>
+<section>
+<h4>ABNF for FileSystem URL</h4>
+<pre>scheme ":" origin path-from-root [fragIdentifier]</pre>
+<pre>scheme = "filesystem"</pre>
+<pre>; scheme is always "filesystem"</pre>
+<pre>; origin is a string representation of the <a href="#originOfFileSystemURL">FileSystem URL's origin</a></pre>
+<pre>; path-from-root always begins with a leading U+0024 SOLIDUS character</pre>
+<pre>; fragIdentifier is optional and is as defined in [[!URL]]</pre>
+</section>
+<section>
+  <h4>Origin of a FileSystem URL</h4>
+  <p>
+This area is currently TBD -- see the affiliated issue below:</p>
+<div class="issue" id="originOfFileSystemURL"><p>Origin may be redefined in terms of Script Realm; open web platform bugs include <a href="https://www.w3.org/Bugs/Public/show_bug.cgi?id=27203">27203</a>, <a href="https://www.w3.org/Bugs/Public/show_bug.cgi?id=27204">27204</a>, and <a href="https://www.w3.org/Bugs/Public/show_bug.cgi?id=26603">26603</a>.</p></div>
+ <p>The <a>origin</a> of a <a>FileSystem URL</a>, when serialized as a string, must conform to the Web Origin Specification's Unicode Serialization of an Origin algorithm 
+  [[!ORIGIN]]. <a href="#cross-origin-request">Cross-origin requests</a> on <a>FileSystem URL</a>s must return a <a href="#dfn-networkError">network error</a>. </p>
+</section>
+<section>
+<h4>Fragment Discussion</h4>
+<p>The <a>fragment</a>'s resolution and processing directives depend on the media type [[RFC2046]] of a potentially retrieved representation, even though such
+  a retrieval is only performed if the <a>FileSystem URL</a> is <a href="#dereference">dereferenced</a>.  For example, in an HTML file [[!HTML]] the <a>fragment</a>
+  could be used to refer to an anchor within the file.  If the user agent does not recognize the media type of the resource, OR if a <a>fragment</a> is not
+  meaningful within the resource, it must ignore the <a>fragment</a>.  
+  </p>
+  
+
+  <p>A valid <a>FileSystem URL</a> reference could look like: <code>filesystem:http://example.org:8080/music/disco/swedes/abba.html#bjorn</code> where "#bjorn" might be an HTML fragment identifier referring to an
+  element with an id attribute of "bjorn".  </p>
+ 
+
+</section>
+<section>
+  <h4>URL Generation Steps</h4>
+<p>When this specification says to follow the <dfn>URL generation steps</dfn> for a <a><code>File</code></a> object <var>f</var>, the following steps must be run:</p>
+<ol>
+<li><p>Let <var>result</var> be the empty string. Append the string "filesystem" (that is, the Unicode code point sequence U+0066, U+0069, U+006C, U+0065, U+0073, U+0079, U+0073, U+0074, U+0065, U+006D) to <var>result</var>.</p></li>
+<li><p>Append the ":" (U+003A COLON) character to <var>result</var>.</p></li>
+<li><p>Let <var>O</var> be the <a href="#originOfFileSystemURL">origin of the FileSystem URL</a>. If the Unicode Serialization of an Origin algorithm [[!ORIGIN]] on <var>O</var> returns null, user agents may substitute an implementation defined value for the return value of the Unicode Serialization of an Origin algorithm. Append the result of the Unicode Serialization of an Origin algorithm for <var>O</var> [[!ORIGIN]] to <var>result</var>.</p></li>
+<li><p>Let <var>p</var> be the <a>path from root</a> of <var>f</var>. If there is no <a>path from root</a> for <var>f</var>, return failure and end these steps.</p> 
+<div class="note"><p>Having no <a>path from root</a> might be because the <a href="#fileConcept">file</a> isn't found in the <a>Directory Tree</a>, or the <a><code>File</code></a> object reference is invalid.</p></div>
+</li>
+<li><p>Otherwise, convert <var>p</var> to a Unicode string and append it to <var>result</var>.</p></li>
+<li><p>Return <var>result</var>.</p></li>
+</ol>
+</section>
+<section>
+  <h4>Dereferencing Model for FileSystem URLs</h4>
+<div class="issue"><p>The URL [[URL]] and Fetch [[!Fetch]] specifications should be considered normative when they get around to dealing with <a>FileSystem URL</a>s. This section provides guidance.  </p></div>
+  <p><a>FileSystem URL</a>s are <dfn id="dereference">dereferenced</dfn> when the user agent retrieves the resource identifed by the <a>FileSystem URL</a> and returns it to the requesting entity. This section provides guidance on <a href="#requestURL">requests</a> and <a href="#responseURL">responses</a>. </p>
+  <p>Only <a href="#requestURL">requests</a> with GET [[!RFC7231]] are supported. Specifically, <a href="#responseURL">responses</a> are only a subset of the following from HTTP [RFC7231]:</p>
+  <section>
+    <h5>200 OK</h5>
+    <p>This <a href="#responseURL">response</a> is used if the request has succeeded, and no <a>network error</a> is generated.</p>
+  </section>
+  <section>
+    <h5>Response Headers</h5>
+<p>Along with 200 OK <a href="#responseURL">responses</a>, user agents use a Content-Type header [[!RFC7231]] that is equal to the value of the <a><code>File</code></a>'s <code>type</code> attribute, if it is not the empty string.</p>
+
+<p>Along with 200 OK responses, user agents use a Content-Length header [[!RFC7230]] that is equal to the value of the <a><code>File</code></a>'s <code>size</code> attribute.</p>
+
+<p>If a Content-Type header [[!RFC7231]] is provided, then user agents obtain and process that media type in a manner consistent with the Mime Sniffing specification [[!MIMESniff]].</p>
+
+<p>User agents should use the <a><code>File</code></a>'s <code>name</code> attribute, as if the response had a Content-Disposition header with the filename parameter set to the <a><code>File</code></a>'s <code>name</code> attribute [[!RFC6266]]. </p>
+  </section>
+  <section>
+    <h5>Network Errors</h5>
+    <p><a href="#responseURL">Responses</a> that do not succeed with a 200 OK act as if a <dfn>network error</dfn> has occurred [[!Fetch]]. Network errors are used when:</p>
+    <ol>
+      <li><p>Any <a href="#requestURL">request</a> other than GET is used.</p></li>
+      <li><p>A <a href="#cross-origin-request">cross-origin request</a> is made on a <a>FileSystem URL</a>.</p></li>
+      <li><p>The underlying <a href="#fileConcept">file</a> in the <a>Directory Tree</a> is no longer in the location identified by the <a>FileSystem URL</a>'s <a>path from root</a> in the <a>scheme data</a>.</p></li>
+    </ol>
+  </section>
+</section>
+</section>
+
 </section>
 <section>
   <h2>Acknowledgements</h2>
-  Jonas Sicking, Mounir Lamouri, Ben Turner, Jan Varga, Andrea Marchesini, Doug Turner, Maciej Stachowiak
+  <p>Jonas Sicking, Mounir Lamouri, Ben Turner, Jan Varga, Andrea Marchesini, Doug Turner, Maciej Stachowiak</p>
 </section>
    
   </body>
