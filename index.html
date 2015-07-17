@@ -423,6 +423,14 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
     </tbody></table>
     </section>
     <section>
+      <h2>Sequence Type for Directory Content Iteration</h2>
+      <div class='idl' title='typedef sequence&lt;(File or Directory)&gt; FileOrDirectorySequence'></div>
+      <p>
+        This specification uses this type for the <a href="#widl-Directory-getFilesAndDirectories-Promise-FileOrDirectorySequence"><code>getFilesAndDirectories()</code></a> method.
+      </p>
+      <div class="note"><p>It is expected that this sequence parameterized type will be replaced or obviated with different and more programmatically efficient constructs <a href="https://github.com/w3c/filesystem-api/issues/4" title="link to github issue">such as <code>AsyncIterator</code> or <code>Observable</code></a> when they are added to the platform.</p></div>
+    </section>
+    <section>
       <h2>Directory WebIDL</h2>
 <dl title='[Exposed=Window,Worker] interface Directory' class='idl'>
   <dt>readonly attribute DOMString name</dt>
@@ -768,9 +776,30 @@ var pathToJazz = "jazz"; // relative path from within genres to jazz Directory <
     <li>Return <var>p</var>.</li>
     </ol>
   </dd>
+  <dt>Promise&lt;FileOrDirectorySequence> getFilesAndDirectories()</dt>
+  <dd>
+    <p>When the <code>getFilesAndDirectories()</code> method is called, the user agent must run the steps below:</p>
+    <ol>
+      <li><p>Let <var>p</var> be a new promise and <var>s</var> a sequence, initially set to an empty sequence.</p></li>
+      <li><p>Run the following steps asynchronously:</p>
+        <ol>
+          <li><p>If the <a>present working directory</a> has no <a href="#fileConcept">files</a> or <a href="#directoryConcept">directories</a>, resolve <var>p</var> with <var>s</var>, which is still an empty sequence.</p></li>
+          <li><p>Otherwise, for each <a>immediate child</a> of the <a>present working directory</a>, add the corresponding node to <var>s</var> as a <a><code>File</code></a> or <a>Directory</a>, depending on the type of the <a>immediate child</a>.</p></li>
+          <li><p>If there are any problems retrieving any <a>immediate child</a>, reject <var>p</var> with an <code>InvalidStateError</code>.</p>
+          <div class="note"><p>Promise rejection occurs for any problem crawling the <a>present working directory</a>.</p></div>  
+          </li>
+          <li><p>Once all the <a>immediate child</a> nodes of the <a>present working directory</a> have been added to <var>s</var> as a <a><code>File</code></a> or <a><code>Directory</code></a>, resolve <var>p</var> with <var>s</var>.</p></li>
+        </ol>
+
+      </li>
+      <li><p>Return <var>p</var>.</p></li>
+
+    </ol>
+    
+  </dd>
   <dt>Observable&lt;(File or Directory)> enumerate(optional DOMString path)</dt>
   <dd>
-    <div class="issue"><p>The <code>Observable</code> async generator and semantics around it are not well-defined yet; for instance, the name of the underlying primitive might end up being <code>AsyncObservable</code>. This is a general platform problem; <code>Observable</code> currently is a proposal within TC-39, and this should be considered "placeholder" semantics till the proposal becomes a language formalism.</p>
+    <div class="issue"><p>The <code>Observable</code> async generator and semantics around it are not well-defined yet. The more useful underyling primitive might be an <code>AsyncIterator</code>. This is a general platform problem; <code>Observable</code> and <code>AsyncIterator</code> are currently proposals within TC-39, and this should be considered "placeholder" semantics till the proposal becomes a language formalism. See also <a href="https://github.com/w3c/filesystem-api/issues/4" title="link to GitHub issue">Issue 4</a> with this specification.</p>
     </div>
     <p>When the <code>enumerate(path)</code> method is called, the user agent must run the steps below:</p>
      <ol>
@@ -1166,7 +1195,7 @@ This area is currently TBD -- see the affiliated issue below:</p>
 <section>
   <h4>Dereferencing Model for FileSystem URLs</h4>
 <div class="issue"><p>The URL [[URL]] and Fetch [[!Fetch]] specifications should be considered normative when they get around to dealing with <a>FileSystem URL</a>s. This section provides guidance.  </p></div>
-  <p><a>FileSystem URL</a>s are <dfn id="dereference">dereferenced</dfn> when the user agent retrieves the resource identifed by the <a>FileSystem URL</a> and returns it to the requesting entity. This section provides guidance on <a href="#requestURL">requests</a> and <a href="#responseURL">responses</a>. </p>
+  <p><a>FileSystem URL</a>s are <dfn id="dereference">dereferenced</dfn> when the user agent retrieves the resource identified by the <a>FileSystem URL</a> and returns it to the requesting entity. This section provides guidance on <a href="#requestURL">requests</a> and <a href="#responseURL">responses</a>. </p>
   <p>Only <a href="#requestURL">requests</a> with GET [[!RFC7231]] are supported. Specifically, <a href="#responseURL">responses</a> are only a subset of the following from HTTP [RFC7231]:</p>
   <section>
     <h5>200 OK</h5>
